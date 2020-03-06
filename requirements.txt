@@ -1,0 +1,7 @@
+tensorflow>=2
+tensorflow-datasets
+matplotlib
+jupyter
+numpy
+pydot
+graphviz
