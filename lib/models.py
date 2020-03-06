@@ -41,7 +41,7 @@ class ModelsBuilder:
 
         return result
 
-    def build_generator(self, add_fog=False):
+    def build_generator(self, clear2fog=False):
         inputs = tf.keras.layers.Input(shape=[self.image_height, self.image_height, self.output_channels])
 
         down_stack = [
@@ -66,11 +66,10 @@ class ModelsBuilder:
         ]
 
         initializer = tf.random_normal_initializer(0., 0.02)
-        # TODO: Differ between add_fog=True and False values: False value shouldn't have a transmission layer
-        last = tf.keras.layers.Conv2DTranspose(1, 4,
+        last = tf.keras.layers.Conv2DTranspose(1 if clear2fog else self.output_channels, 4,
                                                strides=2,
                                                padding='same',
-                                               name='transmission_layer',
+                                               name='transmission_layer' if clear2fog else 'output_layer',
                                                kernel_initializer=initializer,
                                                activation='sigmoid')  # (bs, 256, 256, 1)
         x = inputs
@@ -86,15 +85,15 @@ class ModelsBuilder:
         for up, skip in zip(up_stack, skips):
             x = up(x)
             x = tf.keras.layers.Concatenate()([x, skip])
-        transmission = last(x)
+        x = last(x)
+        if clear2fog:
+            transmission = x
+            from . import gauss
+            transmission = gauss.gauss_blur_model([self.image_height, self.image_width, 1], name="gauss_blur")(transmission)
 
-
-        from . import gauss
-        transmission = gauss.gauss_blur_model([self.image_height, self.image_width, 1], name="gauss_blur")(transmission)
-
-        x = tf.keras.layers.multiply([inputs, transmission])
-        one_minus_t = tf.keras.layers.Lambda(lambda t: 1 - t, name='transmission_invert')(transmission)
-        x = tf.keras.layers.add([x, one_minus_t])
+            x = tf.keras.layers.multiply([inputs, transmission])
+            one_minus_t = tf.keras.layers.Lambda(lambda t: 1 - t, name='transmission_invert')(transmission)
+            x = tf.keras.layers.add([x, one_minus_t])
 
         return tf.keras.Model(inputs=inputs, outputs=x)
 
