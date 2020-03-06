@@ -1,1 +1,1 @@
-from . import plot, dataset, gauss, models
+from . import plot, dataset, gauss, models, tools
