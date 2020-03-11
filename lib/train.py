@@ -121,12 +121,13 @@ class Trainer:
         import datetime
         import os
 
-        summary_writer=None
+        summary_writer = None
         if tfboard_log:
             tfboard_logdir = os.path.join(self.tfboard_baselogdir, datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
             summary_writer = tf.summary.create_file_writer(logdir=tfboard_logdir)
         length = "Unknown"
         for epoch in range(epochs):
+            clear2fog_loss_total = fog2clear_loss_total = disc_clear_loss_total = disc_fog_loss_total = 0
             start = time.time()
             n = 0
             # Using a consistent image (sample_clear) so that the progress of the model
@@ -135,18 +136,22 @@ class Trainer:
                 epoch_callback()
             dataset = tf.data.Dataset.zip((train_clear, train_fog))
             for image_clear, image_fog in dataset:
+                # Train Step
                 clear2fog_loss, fog2clear_loss, disc_clear_loss, disc_fog_loss = self.train_step(image_clear, image_fog)
-                if tfboard_log:
-                    with summary_writer.as_default():
-                        tf.summary.scalar('epoch_loss_avg', clear2fog_loss,
-                                          step=self.generator_clear2fog_optimizer.iterations)
-                        # tf.summary.scalar('epoch_accuracy', epoch_accuracy.result(), step=optimizer.iterations)
+                # Update Epoch's losses
+                clear2fog_loss_total += clear2fog_loss
+                fog2clear_loss_total += fog2clear_loss
+                disc_clear_loss_total += disc_clear_loss
+                disc_fog_loss_total += disc_fog_loss
+                # Print Progress
                 if n % progress_print_rate == 0:
                     print_with_timestamp('{}/{}'.format(n, length))
                 n += 1
             length = n
             if clear_output_callback is not None:
                 clear_output_callback()
+
+            # Save weights
             if self.checkpoint_manager is not None and epoch_save_rate is not None and (
                     epoch + 1) % epoch_save_rate == 0:
                 checkpoint_save_path = self.checkpoint_manager.save()
@@ -154,6 +159,17 @@ class Trainer:
                                                                                    checkpoint_save_path))
             print_with_timestamp('Time taken for epoch {} is {} sec\n'.format(epoch + 1,
                                                                               time.time() - start))
+            # Tensorflow Board
+            if tfboard_log:
+                with summary_writer.as_default():
+                    tf.summary.scalar('clear2fog_loss', clear2fog_loss_total,
+                                      step=self.generator_clear2fog_optimizer.iterations)
+                    tf.summary.scalar('fog2clear_loss', fog2clear_loss_total,
+                                      step=self.generator_clear2fog_optimizer.iterations)
+                    tf.summary.scalar('disc_clear_loss', disc_clear_loss_total,
+                                      step=self.generator_clear2fog_optimizer.iterations)
+                    tf.summary.scalar('disc_fog_loss', disc_fog_loss_total,
+                                      step=self.generator_clear2fog_optimizer.iterations)
 
 
 if __name__ == 'main':
