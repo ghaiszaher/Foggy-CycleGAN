@@ -2,3 +2,4 @@
 .idea/
 model.png
 */__pycache__/*
+tfboard_logs/

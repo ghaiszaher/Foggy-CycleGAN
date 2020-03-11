@@ -18,6 +18,7 @@ class Trainer:
         self.discriminator_clear_optimizer = tf.keras.optimizers.Adam(lr, beta_1=beta_1)
         # Checkpoint Manager
         self.checkpoint_manager = None
+        self.tfboard_baselogdir = 'tfboard_logs'
 
     def discriminator_loss(self, real, generated):
         real_loss = self.loss_obj(tf.ones_like(real), real)
@@ -111,11 +112,19 @@ class Trainer:
         self.discriminator_fog_optimizer.apply_gradients(zip(discriminator_fog_gradients,
                                                              self.discriminator_fog.trainable_variables))
 
+        return total_gen_clear2fog_loss, total_gen_fog2clear_loss, disc_clear_loss, disc_fog_loss
+
     def train(self, train_clear, train_fog, epochs=40, epoch_save_rate=1, progress_print_rate=10, epoch_callback=None,
-              clear_output_callback=None):
+              clear_output_callback=None, tfboard_log=False):
         from lib.tools import print_with_timestamp
         import time
+        import datetime
+        import os
 
+        summary_writer=None
+        if tfboard_log:
+            tfboard_logdir = os.path.join(self.tfboard_baselogdir, datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+            summary_writer = tf.summary.create_file_writer(logdir=tfboard_logdir)
         length = "Unknown"
         for epoch in range(epochs):
             start = time.time()
@@ -126,8 +135,12 @@ class Trainer:
                 epoch_callback()
             dataset = tf.data.Dataset.zip((train_clear, train_fog))
             for image_clear, image_fog in dataset:
-                # print(image_x.shape, image_y.shape)
-                self.train_step(image_clear, image_fog)
+                clear2fog_loss, fog2clear_loss, disc_clear_loss, disc_fog_loss = self.train_step(image_clear, image_fog)
+                if tfboard_log:
+                    with summary_writer.as_default():
+                        tf.summary.scalar('epoch_loss_avg', clear2fog_loss,
+                                          step=self.generator_clear2fog_optimizer.iterations)
+                        # tf.summary.scalar('epoch_accuracy', epoch_accuracy.result(), step=optimizer.iterations)
                 if n % progress_print_rate == 0:
                     print_with_timestamp('{}/{}'.format(n, length))
                 n += 1
