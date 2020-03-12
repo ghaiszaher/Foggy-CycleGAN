@@ -153,6 +153,7 @@ class Trainer:
                 clear_output_callback()
 
             # Save weights
+            # TODO: Save weights and get rid of checkpoints manager
             if self.checkpoint_manager is not None and epoch_save_rate is not None and (
                     epoch + 1) % epoch_save_rate == 0:
                 checkpoint_save_path = self.checkpoint_manager.save()
