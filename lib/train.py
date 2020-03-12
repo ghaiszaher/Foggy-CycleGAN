@@ -18,7 +18,7 @@ class Trainer:
         self.discriminator_clear_optimizer = tf.keras.optimizers.Adam(lr, beta_1=beta_1)
         # Checkpoint Manager
         self.checkpoint_manager = None
-        self.tfboard_baselogdir = 'tfboard_logs'
+        self.tensorboard_baselogdir = 'tensorboard_logs'
 
     def discriminator_loss(self, real, generated):
         real_loss = self.loss_obj(tf.ones_like(real), real)
@@ -115,16 +115,16 @@ class Trainer:
         return total_gen_clear2fog_loss, total_gen_fog2clear_loss, disc_clear_loss, disc_fog_loss
 
     def train(self, train_clear, train_fog, epochs=40, epoch_save_rate=1, progress_print_rate=10, epoch_callback=None,
-              clear_output_callback=None, tfboard_log=False):
+              clear_output_callback=None, use_tensorboard=False):
         from lib.tools import print_with_timestamp
         import time
         import datetime
         import os
 
         summary_writer = None
-        if tfboard_log:
-            tfboard_logdir = os.path.join(self.tfboard_baselogdir, datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
-            summary_writer = tf.summary.create_file_writer(logdir=tfboard_logdir)
+        if use_tensorboard:
+            tesnorboard_logdir = os.path.join(self.tensorboard_baselogdir, datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+            summary_writer = tf.summary.create_file_writer(logdir=tesnorboard_logdir)
         length = "Unknown"
         for epoch in range(epochs):
             clear2fog_loss_total = fog2clear_loss_total = disc_clear_loss_total = disc_fog_loss_total = 0
@@ -159,17 +159,16 @@ class Trainer:
                                                                                    checkpoint_save_path))
             print_with_timestamp('Time taken for epoch {} is {} sec\n'.format(epoch + 1,
                                                                               time.time() - start))
+            print_with_timestamp('clear2fog loss: {}, fog2clear loss: {}, disc_clear loss: {}, disc_fog loss: {}'
+                                 .format(clear2fog_loss_total, fog2clear_loss_total, disc_clear_loss_total,
+                                         disc_fog_loss_total))
             # Tensorflow Board
-            if tfboard_log:
+            if use_tensorboard:
                 with summary_writer.as_default():
-                    tf.summary.scalar('clear2fog_loss', clear2fog_loss_total,
-                                      step=self.generator_clear2fog_optimizer.iterations)
-                    tf.summary.scalar('fog2clear_loss', fog2clear_loss_total,
-                                      step=self.generator_clear2fog_optimizer.iterations)
-                    tf.summary.scalar('disc_clear_loss', disc_clear_loss_total,
-                                      step=self.generator_clear2fog_optimizer.iterations)
-                    tf.summary.scalar('disc_fog_loss', disc_fog_loss_total,
-                                      step=self.generator_clear2fog_optimizer.iterations)
+                    tf.summary.scalar('generator/clear2fog_loss', clear2fog_loss_total, step=epoch)
+                    tf.summary.scalar('generator/fog2clear_loss', fog2clear_loss_total, step=epoch)
+                    tf.summary.scalar('discriminator/disc_clear_loss', disc_clear_loss_total, step=epoch)
+                    tf.summary.scalar('discriminator/disc_fog_loss', disc_fog_loss_total, step=epoch)
 
 
 if __name__ == 'main':
