@@ -17,7 +17,7 @@ class Trainer:
         self.discriminator_fog_optimizer = tf.keras.optimizers.Adam(lr, beta_1=beta_1)
         self.discriminator_clear_optimizer = tf.keras.optimizers.Adam(lr, beta_1=beta_1)
         # Checkpoint Manager
-        self.checkpoint_manager = None
+        self.weights_path = None
         self.tensorboard_baselogdir = 'tensorboard_logs'
 
     def discriminator_loss(self, real, generated):
@@ -37,23 +37,38 @@ class Trainer:
         loss = tf.reduce_mean(tf.abs(real_image - same_image))
         return self.LAMBDA * 0.5 * loss
 
-    def configure_checkpoint(self, checkpoint_path, max_to_keep=1):
-        checkpoint = tf.train.Checkpoint(generator_clear2fog=self.generator_clear2fog,
-                                         generator_fog2clear=self.generator_fog2clear,
-                                         discriminator_fog=self.discriminator_fog,
-                                         discriminator_clear=self.discriminator_clear,
-                                         generator_clear2fog_optimizer=self.generator_clear2fog_optimizer,
-                                         generator_fog2clear_optimizer=self.generator_fog2clear_optimizer,
-                                         discriminator_fog_optimizer=self.discriminator_fog_optimizer,
-                                         discriminator_clear_optimizer=self.discriminator_clear_optimizer)
+    def get_models_and_paths(self):
+        import os
+        generator_clear2fog_weights_path = os.path.join(self.weights_path, 'generator_clear2fog.weights')
+        generator_fog2clear_weights_path = os.path.join(self.weights_path, 'generator_fog2clear.weights')
+        discriminator_clear_weights_path = os.path.join(self.weights_path, 'discriminator_clear.weights')
+        discriminator_fog_weights_path = os.path.join(self.weights_path, 'discriminator_fog.weights')
+        models = [self.generator_clear2fog,
+                  self.generator_fog2clear,
+                  self.discriminator_clear,
+                  self.discriminator_fog]
+        paths = [generator_clear2fog_weights_path,
+                 generator_fog2clear_weights_path,
+                 discriminator_clear_weights_path,
+                 discriminator_fog_weights_path]
+        return models, paths
 
-        self.checkpoint_manager = tf.train.CheckpointManager(checkpoint, checkpoint_path, max_to_keep=max_to_keep)
-        # if a checkpoint exists, restore the latest checkpoint.
-        if self.checkpoint_manager.latest_checkpoint:
-            checkpoint.restore(self.checkpoint_manager.latest_checkpoint)
-            print('Latest checkpoint restored!!')
-        else:
-            print('No checkpoint found.')
+    def configure_checkpoint(self, weights_path, max_to_keep=1):
+        import os
+        self.weights_path = weights_path
+        models, paths = self.get_models_and_paths()
+        # TODO: Create the directory recursively if it doesn't exist
+        for model, path in zip(models, paths):
+            if os.path.isfile(path):
+                model.load_weights(path)
+                print("Weights loaded: {}".format(path))
+            else:
+                print("Not found: {}".format(path))
+
+    def save_weights(self):
+        models, paths = self.get_models_and_paths()
+        for model, path in zip(models, paths):
+            model.save_weights(path)
 
     @tf.function
     def train_step(self, real_clear, real_fog):
@@ -123,9 +138,9 @@ class Trainer:
 
         summary_writer = None
         if use_tensorboard:
-            tesnorboard_logdir = os.path.join(self.tensorboard_baselogdir,
+            tensorboard_logdir = os.path.join(self.tensorboard_baselogdir,
                                               datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
-            summary_writer = tf.summary.create_file_writer(logdir=tesnorboard_logdir)
+            summary_writer = tf.summary.create_file_writer(logdir=tensorboard_logdir)
         length = "Unknown"
         for epoch in range(epochs):
             clear2fog_loss_total = fog2clear_loss_total = disc_clear_loss_total = disc_fog_loss_total = 0
@@ -153,18 +168,11 @@ class Trainer:
                 clear_output_callback()
 
             # Save weights
-            # TODO: Save weights and get rid of checkpoints manager
-            # Hint: add a function that does the following and call it
-            # checkpoint_path = '/content/drive/My Drive/Colab Notebooks/Cycle-Foggy-GAN/weights/'
-            # self.generator_clear2fog.save_weights(os.path.join(checkpoint_path, 'generator_clear2fog.weights'))
-            # self.generator_fog2clear.save_weights(os.path.join(checkpoint_path, 'generator_fog2clear.weights'))
-            # self.discriminator_clear.save_weights(os.path.join(checkpoint_path, 'discriminator_clear.weights'))
-            # self.discriminator_fog.save_weights(os.path.join(checkpoint_path, 'discriminator_fog.weights'))
-            if self.checkpoint_manager is not None and epoch_save_rate is not None and (
+            if self.weights_path is not None and epoch_save_rate is not None and (
                     epoch + 1) % epoch_save_rate == 0:
-                checkpoint_save_path = self.checkpoint_manager.save()
+                self.save_weights()
                 print_with_timestamp('Saving checkpoint for epoch {} at {}'.format(epoch + 1,
-                                                                                   checkpoint_save_path))
+                                                                                   self.weights_path))
             print_with_timestamp('Time taken for epoch {} is {} sec'.format(epoch + 1,
                                                                             time.time() - start))
             print_with_timestamp('clear2fog loss: {}, fog2clear loss: {}\n\tdisc_clear loss: {}, disc_fog loss: {}'
@@ -178,7 +186,6 @@ class Trainer:
                     tf.summary.scalar('discriminator/disc_clear_loss', disc_clear_loss_total, step=epoch + 1)
                     tf.summary.scalar('discriminator/disc_fog_loss', disc_fog_loss_total, step=epoch + 1)
                 # TODO: Add Graph to tensorboard: https://www.tensorflow.org/tensorboard/graphs
-
 
 
 if __name__ == 'main':
