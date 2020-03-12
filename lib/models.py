@@ -41,7 +41,7 @@ class ModelsBuilder:
 
         return result
 
-    def build_generator(self, clear2fog=False):
+    def build_generator(self, clear2fog=False, activation='sigmoid'):
         inputs = tf.keras.layers.Input(shape=[self.image_height, self.image_height, self.output_channels])
 
         down_stack = [
@@ -71,7 +71,7 @@ class ModelsBuilder:
                                                padding='same',
                                                name='transmission_layer' if clear2fog else 'output_layer',
                                                kernel_initializer=initializer,
-                                               activation='sigmoid')  # (bs, 256, 256, 1)
+                                               activation=activation)  # (bs, 256, 256, 1)
         x = inputs
 
         # Downsampling through the model
