@@ -123,7 +123,8 @@ class Trainer:
 
         summary_writer = None
         if use_tensorboard:
-            tesnorboard_logdir = os.path.join(self.tensorboard_baselogdir, datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+            tesnorboard_logdir = os.path.join(self.tensorboard_baselogdir,
+                                              datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
             summary_writer = tf.summary.create_file_writer(logdir=tesnorboard_logdir)
         length = "Unknown"
         for epoch in range(epochs):
@@ -158,17 +159,19 @@ class Trainer:
                 print_with_timestamp('Saving checkpoint for epoch {} at {}'.format(epoch + 1,
                                                                                    checkpoint_save_path))
             print_with_timestamp('Time taken for epoch {} is {} sec'.format(epoch + 1,
-                                                                              time.time() - start))
+                                                                            time.time() - start))
             print_with_timestamp('clear2fog loss: {}, fog2clear loss: {}\n\tdisc_clear loss: {}, disc_fog loss: {}'
                                  .format(clear2fog_loss_total, fog2clear_loss_total, disc_clear_loss_total,
                                          disc_fog_loss_total))
             # Tensorflow Board
             if use_tensorboard:
                 with summary_writer.as_default():
-                    tf.summary.scalar('generator/clear2fog_loss', clear2fog_loss_total, step=epoch)
-                    tf.summary.scalar('generator/fog2clear_loss', fog2clear_loss_total, step=epoch)
-                    tf.summary.scalar('discriminator/disc_clear_loss', disc_clear_loss_total, step=epoch)
-                    tf.summary.scalar('discriminator/disc_fog_loss', disc_fog_loss_total, step=epoch)
+                    tf.summary.scalar('generator/clear2fog_loss', clear2fog_loss_total, step=epoch + 1)
+                    tf.summary.scalar('generator/fog2clear_loss', fog2clear_loss_total, step=epoch + 1)
+                    tf.summary.scalar('discriminator/disc_clear_loss', disc_clear_loss_total, step=epoch + 1)
+                    tf.summary.scalar('discriminator/disc_fog_loss', disc_fog_loss_total, step=epoch + 1)
+                # TODO: Add Graph to tensorboard: https://www.tensorflow.org/tensorboard/graphs
+
 
 
 if __name__ == 'main':
