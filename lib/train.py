@@ -157,9 +157,9 @@ class Trainer:
                 checkpoint_save_path = self.checkpoint_manager.save()
                 print_with_timestamp('Saving checkpoint for epoch {} at {}'.format(epoch + 1,
                                                                                    checkpoint_save_path))
-            print_with_timestamp('Time taken for epoch {} is {} sec\n'.format(epoch + 1,
+            print_with_timestamp('Time taken for epoch {} is {} sec'.format(epoch + 1,
                                                                               time.time() - start))
-            print_with_timestamp('clear2fog loss: {}, fog2clear loss: {}, disc_clear loss: {}, disc_fog loss: {}'
+            print_with_timestamp('clear2fog loss: {}, fog2clear loss: {}\n\tdisc_clear loss: {}, disc_fog loss: {}'
                                  .format(clear2fog_loss_total, fog2clear_loss_total, disc_clear_loss_total,
                                          disc_fog_loss_total))
             # Tensorflow Board
