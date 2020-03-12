@@ -154,6 +154,12 @@ class Trainer:
 
             # Save weights
             # TODO: Save weights and get rid of checkpoints manager
+            # Hint: add a function that does the following and call it
+            # checkpoint_path = '/content/drive/My Drive/Colab Notebooks/Cycle-Foggy-GAN/weights/'
+            # self.generator_clear2fog.save_weights(os.path.join(checkpoint_path, 'generator_clear2fog.weights'))
+            # self.generator_fog2clear.save_weights(os.path.join(checkpoint_path, 'generator_fog2clear.weights'))
+            # self.discriminator_clear.save_weights(os.path.join(checkpoint_path, 'discriminator_clear.weights'))
+            # self.discriminator_fog.save_weights(os.path.join(checkpoint_path, 'discriminator_fog.weights'))
             if self.checkpoint_manager is not None and epoch_save_rate is not None and (
                     epoch + 1) % epoch_save_rate == 0:
                 checkpoint_save_path = self.checkpoint_manager.save()
