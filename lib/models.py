@@ -2,10 +2,11 @@ import tensorflow as tf
 
 
 class ModelsBuilder:
-    def __init__(self, output_channels=3, image_height=256, image_width=256):
+    def __init__(self, output_channels=3, image_height=256, image_width=256, normalized_input=True):
         self.output_channels = output_channels
         self.image_height = image_height
         self.image_width = image_width
+        self.normalized_input = normalized_input
 
     def downsample(self, filters, size, apply_batchnorm=True):
         initializer = tf.random_normal_initializer(0., 0.02)
@@ -41,7 +42,7 @@ class ModelsBuilder:
 
         return result
 
-    def build_generator(self, clear2fog=False, activation='sigmoid'):
+    def build_generator(self, clear2fog=False):
         inputs = tf.keras.layers.Input(shape=[self.image_height, self.image_height, self.output_channels])
 
         down_stack = [
@@ -71,7 +72,7 @@ class ModelsBuilder:
                                                padding='same',
                                                name='transmission_layer' if clear2fog else 'output_layer',
                                                kernel_initializer=initializer,
-                                               activation=activation)  # (bs, 256, 256, 1)
+                                               activation='tanh' if self.normalized_input else 'sigmoid')  # (bs, 256, 256, 1)
         x = inputs
 
         # Downsampling through the model
@@ -88,6 +89,9 @@ class ModelsBuilder:
         x = last(x)
         if clear2fog:
             transmission = x
+            if self.normalized_input:
+                transmission = tf.keras.layers.Lambda(lambda t: t*0.5+0.5 , name='fix_transmission_range')(transmission)
+
             from . import gauss
             transmission = gauss.gauss_blur_model([self.image_height, self.image_width, 1], name="gauss_blur")(transmission)
 
