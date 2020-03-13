@@ -75,6 +75,7 @@ class ModelsBuilder:
 
         return result
 
+    # TODO: Check which is better, instancenorm or batchnorm
     def build_generator(self, clear2fog=False, norm_type='instancenorm'):
         inputs = tf.keras.layers.Input(shape=[self.image_height, self.image_height, self.output_channels])
 
