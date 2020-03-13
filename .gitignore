@@ -3,3 +3,5 @@
 model.png
 */__pycache__/*
 tfboard_logs/
+tensorboard_logs/
+weights/

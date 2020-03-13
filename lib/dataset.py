@@ -3,9 +3,10 @@ import tensorflow_datasets as tfds
 
 
 class DatasetInitializer:
-    def __init__(self, image_height=256, image_width=256):
+    def __init__(self, image_height=256, image_width=256, normalized_input=True):
         self.image_height = image_height
         self.image_width = image_width
+        self.normalized_input = normalized_input
 
     def random_crop(self, image):
         cropped_image = tf.image.random_crop(
@@ -26,13 +27,19 @@ class DatasetInitializer:
 
         return image
 
+    def normalize_image(self, image):
+        image = tf.cast(image, tf.float32)
+        if self.normalized_input:
+            return image/127.5-1
+        return image / 255.
+
     def preprocess_image_train(self, image, label):
-        image = tf.cast(image, tf.float32) / 255.
+        image = self.normalize_image(image)
         image = self.random_jitter(image)
         return image
 
     def preprocess_image_test(self, image, label):
-        image = tf.cast(image, tf.float32) / 255.
+        image = self.normalize_image(image)
         return image
 
     def prepare_dataset(self, buffer_size, batch_size, AUTOTUNE=tf.data.experimental.AUTOTUNE):

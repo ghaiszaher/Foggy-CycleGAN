@@ -1,3 +1,3 @@
-# Cycle-Foggy-GAN
+# Foggy-CycleGAN
 
 TODO: Add description
