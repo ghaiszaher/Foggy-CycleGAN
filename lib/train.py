@@ -143,7 +143,7 @@ class Trainer:
                        save_sample_generator_output, save_sample_gen_and_disc_output):
         if sample_test is None:
             return
-        if type(sample_test) is not list or type(sample_test) is not tuple:
+        if type(sample_test) is not list and type(sample_test) is not tuple:
             raise Exception("sample_test should be a list or tuple!")
         if len(sample_test) != 2:
             raise Exception("sample_test should contain 2 elements!")
