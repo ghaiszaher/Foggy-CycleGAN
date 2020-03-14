@@ -5,3 +5,4 @@ model.png
 tfboard_logs/
 tensorboard_logs/
 weights/
+image_logs/
