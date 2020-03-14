@@ -24,6 +24,10 @@ class Trainer:
         self.tensorboard_baselogdir = 'tensorboard_logs'
         self.total_epochs = 0
         self.image_log_path = 'image_logs'
+        # TODO: add save_config and load_config methods
+        # - config contains: all directories + total_epochs
+        # - instead of storing summary_writers as class variables, store tensorboard_current_logdir
+        # - in load_config, an option will be to load tensorboard_logdir or not
 
     def discriminator_loss(self, real, generated):
         real_loss = self.loss_obj(tf.ones_like(real), real)
