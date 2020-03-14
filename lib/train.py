@@ -167,12 +167,12 @@ class Trainer:
                                                                       discriminator_fakeclear_output,
                                                                       discriminator_fakefog_output,
                                                                       normalized_input=self.normalized_input)
-            if plot_sample_gen_and_disc:
-                plt.show()
             if save_sample_gen_and_disc_output:
                 plt.savefig(
                     os.path.join(self.image_log_path, "gen_and_disc_output_epoch_{}.jpg".format(self.total_epochs)),
                     bbox_inches='tight', pad_inches=0)
+            if plot_sample_gen_and_disc:
+                plt.show()
 
         if plot_sample_generator:
             plot.plot_generators_predictions_v2(sample_clear, prediction_clear2fog, sample_fog,
