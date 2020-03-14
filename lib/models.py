@@ -76,7 +76,7 @@ class ModelsBuilder:
         return result
 
     # TODO: Check which is better, instancenorm or batchnorm
-    def build_generator(self, clear2fog=False, norm_type='instancenorm'):
+    def build_generator(self, use_transmission_map=False, norm_type='instancenorm'):
         inputs = tf.keras.layers.Input(shape=[self.image_height, self.image_height, self.output_channels])
 
         down_stack = [
@@ -101,10 +101,10 @@ class ModelsBuilder:
         ]
 
         initializer = tf.random_normal_initializer(0., 0.02)
-        last = tf.keras.layers.Conv2DTranspose(1 if clear2fog else self.output_channels, 4,
+        last = tf.keras.layers.Conv2DTranspose(1 if use_transmission_map else self.output_channels, 4,
                                                strides=2,
                                                padding='same',
-                                               name='transmission_layer' if clear2fog else 'output_layer',
+                                               name='transmission_layer' if use_transmission_map else 'output_layer',
                                                kernel_initializer=initializer,
                                                activation='tanh' if self.normalized_input else 'sigmoid')  # (bs, 256, 256, 1)
         x = inputs
@@ -121,7 +121,7 @@ class ModelsBuilder:
             x = up(x)
             x = tf.keras.layers.Concatenate()([x, skip])
         x = last(x)
-        if clear2fog:
+        if use_transmission_map:
             transmission = x
             if self.normalized_input:
                 transmission = tf.keras.layers.Lambda(lambda t: t * 0.5 + 0.5, name='fix_transmission_range')(
