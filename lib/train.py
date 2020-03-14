@@ -28,6 +28,8 @@ class Trainer:
         # - config contains: all directories + total_epochs
         # - instead of storing summary_writers as class variables, store tensorboard_current_logdir
         # - in load_config, an option will be to load tensorboard_logdir or not
+        # - add class variable: config log
+        # - pass a parameter that allows to save config on each epoch end
 
     def discriminator_loss(self, real, generated):
         real_loss = self.loss_obj(tf.ones_like(real), real)
