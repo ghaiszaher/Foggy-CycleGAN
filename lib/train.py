@@ -199,14 +199,15 @@ class Trainer:
             tools.create_dir(self.image_log_path)
 
         # Configure tensorboard if not already configured
-        if use_tensorboard and (self.tensorboard_summary_writer_clear is None or self.tensorboard_summary_writer_fog is None):
+        if use_tensorboard and (
+                self.tensorboard_summary_writer_clear is None or self.tensorboard_summary_writer_fog is None):
             tensorboard_logdir = os.path.join(self.tensorboard_baselogdir,
                                               datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
             tensorboard_logdir_clear = tensorboard_logdir + "-clear"
             tensorboard_logdir_fog = tensorboard_logdir + "-fog"
             if self.tensorboard_summary_writer_clear is None:
                 self.tensorboard_summary_writer_clear = tf.summary.create_file_writer(logdir=tensorboard_logdir_clear)
-            if self.tensorboard_summary_writer_clear is None:
+            if self.tensorboard_summary_writer_fog is None:
                 self.tensorboard_summary_writer_fog = tf.summary.create_file_writer(logdir=tensorboard_logdir_fog)
 
         length = "Unknown"
