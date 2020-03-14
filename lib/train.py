@@ -216,9 +216,9 @@ class Trainer:
             self.epoch_callback(sample_test, plot_sample_generator, plot_sample_gen_and_disc,
                                 save_sample_generator_output, save_sample_gen_and_disc_output)
 
-            start = time.time()
             dataset = tf.data.Dataset.zip((train_clear, train_fog))
             n = 0
+            start = time.time()
             for image_clear, image_fog in dataset:
                 # Train Step
                 clear2fog_loss, fog2clear_loss, disc_clear_loss, disc_fog_loss = self.train_step(image_clear,
@@ -232,6 +232,7 @@ class Trainer:
                 if n % progress_print_rate == 0:
                     print_with_timestamp('{}/{}'.format(n, length))
                 n += 1
+            end = time.time()
             length = n
             if clear_output_callback is not None:
                 clear_output_callback()
@@ -243,9 +244,11 @@ class Trainer:
                 print_with_timestamp('Saving checkpoint for epoch {} (total {}) at {}'.format(epoch + 1,
                                                                                               self.total_epochs,
                                                                                               self.weights_path))
-            print_with_timestamp('Time taken for epoch {} (total {}) is {} sec'.format(epoch + 1,
-                                                                                       self.total_epochs,
-                                                                                       time.time() - start))
+            print_with_timestamp('Time taken for epoch {} (total {})'
+                                 ' is {} sec (effective: {} sec)'.format(epoch + 1,
+                                                                         self.total_epochs + 1,
+                                                                         time.time() - start,
+                                                                         end - start))
             print_with_timestamp('clear2fog loss: {}, fog2clear loss: {}\n\tdisc_clear loss: {}, disc_fog loss: {}'
                                  .format(clear2fog_loss_total, fog2clear_loss_total, disc_clear_loss_total,
                                          disc_fog_loss_total))
