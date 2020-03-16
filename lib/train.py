@@ -11,8 +11,6 @@ class Trainer:
         self.discriminator_fog = discriminator_fog
         self.discriminator_clear = discriminator_clear
         self.normalized_input = normalized_input
-        self.tensorboard_summary_writer_clear = None
-        self.tensorboard_summary_writer_fog = None
         # Losses
         self.loss_obj = tf.keras.losses.BinaryCrossentropy(from_logits=True)
         self.generator_clear2fog_optimizer = tf.keras.optimizers.Adam(lr, beta_1=beta_1)
@@ -21,15 +19,57 @@ class Trainer:
         self.discriminator_clear_optimizer = tf.keras.optimizers.Adam(lr, beta_1=beta_1)
         # Checkpoint Manager
         self.weights_path = None
-        self.tensorboard_baselogdir = 'tensorboard_logs'
+        self.tensorboard_base_logdir = 'tensorboard_logs'
         self.total_epochs = 0
         self.image_log_path = 'image_logs'
+        self.config_path = 'trainer_config.json'
+        self.tensorboard_current_logdir = None
         # TODO: add save_config and load_config methods
         # - config contains: all directories + total_epochs
         # - instead of storing summary_writers as class variables, store tensorboard_current_logdir
         # - in load_config, an option will be to load tensorboard_logdir or not
         # - add class variable: config log
         # - pass a parameter that allows to save config on each epoch end
+
+    def save_config(self):
+        import json
+        import os
+        from . import tools
+        config = {
+            'weights_path': self.weights_path,
+            'tensorboard_base_logdir': self.tensorboard_base_logdir,
+            'tensorboard_current_logdir': self.tensorboard_current_logdir,
+            'total_epochs': self.total_epochs,
+            'image_log_path': self.image_log_path,
+        }
+
+        #create parent path recursively
+        tools.create_dir(os.path.dirname(self.config_path))
+        with open(self.config_path, 'w') as f:
+            json.dump(config, f, indent=2)
+        print("Trainer config saved in {}".format(self.config_path))
+
+    def load_config(self, load_tensorboard_current_logdir=True):
+        import json
+        import os
+        if not os.path.exists(self.config_path):
+            print("Config path doesn't exist. Ignoring load config.")
+            return
+
+        with open(self.config_path, 'r') as f:
+            config = json.load(f)
+        if 'weights_path' in config:
+            self.weights_path = config['weights_path']
+        if 'tensorboard_base_logdir' in config:
+            self.tensorboard_base_logdir = config['tensorboard_base_logdir']
+        if load_tensorboard_current_logdir and 'tensorboard_current_logdir' in config:
+            self.tensorboard_current_logdir = config['tensorboard_current_logdir']
+        if 'total_epochs' in config:
+            self.total_epochs = config['total_epochs']
+        if 'image_log_path' in config:
+            self.image_log_path = config['image_log_path']
+
+        print("Trainer config loaded from {}".format(self.config_path))
 
     def discriminator_loss(self, real, generated):
         real_loss = self.loss_obj(tf.ones_like(real), real)
@@ -76,10 +116,6 @@ class Trainer:
                 print("Weights loaded: {}".format(path))
             else:
                 print("Not found: {}".format(path))
-
-    def reset_tensorboard_writers(self):
-        self.tensorboard_summary_writer_fog = None
-        self.tensorboard_summary_writer_clear = None
 
     def save_weights(self):
         models, paths = self.get_models_and_paths()
@@ -193,11 +229,15 @@ class Trainer:
 
     def train(self, train_clear, train_fog, epochs=40, epoch_save_rate=1, progress_print_rate=10,
               clear_output_callback=None, use_tensorboard=False, sample_test=None, plot_sample_generator=False,
-              plot_sample_gen_and_disc=True, save_sample_generator_output=True, save_sample_gen_and_disc_output=True):
+              plot_sample_gen_and_disc=True, save_sample_generator_output=True, save_sample_gen_and_disc_output=True,
+              load_config_first=True, save_config_each_epoch=True):
         from lib.tools import print_with_timestamp
         import time
         import datetime
         import os
+
+        if load_config_first and self.config_path is not None:
+            self.load_config()
 
         # Create image log path if needed
         if save_sample_generator_output or save_sample_gen_and_disc_output:
@@ -205,16 +245,16 @@ class Trainer:
             tools.create_dir(self.image_log_path)
 
         # Configure tensorboard if not already configured
-        if use_tensorboard and (
-                self.tensorboard_summary_writer_clear is None or self.tensorboard_summary_writer_fog is None):
-            tensorboard_logdir = os.path.join(self.tensorboard_baselogdir,
-                                              datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+        tensorboard_summary_writer_clear = None
+        tensorboard_summary_writer_fog = None
+        if use_tensorboard:
+            tensorboard_logdir = self.tensorboard_current_logdir if self.tensorboard_current_logdir is not None \
+                else os.path.join(self.tensorboard_base_logdir,
+                                  datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
             tensorboard_logdir_clear = tensorboard_logdir + "-clear"
             tensorboard_logdir_fog = tensorboard_logdir + "-fog"
-            if self.tensorboard_summary_writer_clear is None:
-                self.tensorboard_summary_writer_clear = tf.summary.create_file_writer(logdir=tensorboard_logdir_clear)
-            if self.tensorboard_summary_writer_fog is None:
-                self.tensorboard_summary_writer_fog = tf.summary.create_file_writer(logdir=tensorboard_logdir_fog)
+            tensorboard_summary_writer_clear = tf.summary.create_file_writer(logdir=tensorboard_logdir_clear)
+            tensorboard_summary_writer_fog = tf.summary.create_file_writer(logdir=tensorboard_logdir_fog)
 
         length = "Unknown"
         for epoch in range(epochs):
@@ -260,19 +300,24 @@ class Trainer:
                                          disc_fog_loss_total))
             # Tensorboard
             if use_tensorboard:
-                with self.tensorboard_summary_writer_clear.as_default():
+                with tensorboard_summary_writer_clear.as_default():
                     tf.summary.scalar('generator', fog2clear_loss_total, step=self.total_epochs + 1,
                                       description='fog2clear loss')
                     tf.summary.scalar('discriminator', disc_clear_loss_total, step=self.total_epochs + 1,
                                       description='discriminator_clear loss')
-                with self.tensorboard_summary_writer_fog.as_default():
+                with tensorboard_summary_writer_fog.as_default():
                     tf.summary.scalar('generator', clear2fog_loss_total, step=self.total_epochs + 1,
                                       description='clear2fog loss')
                     tf.summary.scalar('discriminator', disc_fog_loss_total, step=self.total_epochs + 1,
                                       description='discriminator_fog loss')
                     # TODO: Add Graph to tensorboard: https://www.tensorflow.org/tensorboard/graphs
+
+            if save_config_each_epoch:
+                self.save_config()
+
             self.total_epochs += 1
 
-    if __name__ == 'main':
-        pass
-        # TODO: Perform training
+
+if __name__ == 'main':
+    pass
+    # TODO: Perform training

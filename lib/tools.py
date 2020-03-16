@@ -5,6 +5,8 @@ def print_with_timestamp(*args, **kwargs):
 
 
 def create_dir(path):
+    if path is None or path == '':
+        return
     import os
     if not os.path.exists(path):
         os.makedirs(path)
