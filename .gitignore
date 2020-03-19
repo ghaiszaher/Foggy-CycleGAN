@@ -1,5 +1,5 @@
 .ipynb_checkpoints/
-.idea/
+.idea/*
 model.png
 */__pycache__/*
 tfboard_logs/
@@ -7,3 +7,5 @@ tensorboard_logs/
 weights/
 image_logs/
 trainer_config.json
+
+!.idea/dictionaries/
