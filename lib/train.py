@@ -43,7 +43,7 @@ class Trainer:
             'image_log_path': self.image_log_path,
         }
 
-        #create parent path recursively
+        # create parent path recursively
         tools.create_dir(os.path.dirname(self.config_path))
         with open(self.config_path, 'w') as f:
             json.dump(config, f, indent=2)
@@ -248,9 +248,9 @@ class Trainer:
         tensorboard_summary_writer_clear = None
         tensorboard_summary_writer_fog = None
         if use_tensorboard:
-            self.tensorboard_current_logdir = self.tensorboard_current_logdir if self.tensorboard_current_logdir is not None \
-                else os.path.join(self.tensorboard_base_logdir,
-                                  datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+            if self.tensorboard_current_logdir is None:
+                self.tensorboard_current_logdir = os.path.join(self.tensorboard_base_logdir,
+                                                               datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
             tensorboard_logdir_clear = self.tensorboard_current_logdir + "-clear"
             tensorboard_logdir_fog = self.tensorboard_current_logdir + "-fog"
             tensorboard_summary_writer_clear = tf.summary.create_file_writer(logdir=tensorboard_logdir_clear)
