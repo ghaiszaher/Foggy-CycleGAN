@@ -258,6 +258,8 @@ class Trainer:
 
         length = "Unknown"
         for epoch in range(epochs):
+            print_with_timestamp("Starting with epoch {} (total {})".format(epoch + 1,
+                                                                            self.total_epochs + 1))
             clear2fog_loss_total = fog2clear_loss_total = disc_clear_loss_total = disc_fog_loss_total = 0
             self.epoch_callback(sample_test, plot_sample_generator, plot_sample_gen_and_disc,
                                 save_sample_generator_output, save_sample_gen_and_disc_output)
@@ -288,7 +290,7 @@ class Trainer:
                     epoch + 1) % epoch_save_rate == 0:
                 self.save_weights()
                 print_with_timestamp('Saving checkpoint for epoch {} (total {}) at {}'.format(epoch + 1,
-                                                                                              self.total_epochs,
+                                                                                              self.total_epochs + 1,
                                                                                               self.weights_path))
             print_with_timestamp('Time taken for epoch {} (total {})'
                                  ' is {} sec (effective: {} sec)'.format(epoch + 1,
@@ -312,10 +314,9 @@ class Trainer:
                                       description='discriminator_fog loss')
                     # TODO: Add Graph to tensorboard: https://www.tensorflow.org/tensorboard/graphs
 
+            self.total_epochs += 1
             if save_config_each_epoch:
                 self.save_config()
-
-            self.total_epochs += 1
 
 
 if __name__ == 'main':
