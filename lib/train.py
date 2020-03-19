@@ -248,11 +248,11 @@ class Trainer:
         tensorboard_summary_writer_clear = None
         tensorboard_summary_writer_fog = None
         if use_tensorboard:
-            tensorboard_logdir = self.tensorboard_current_logdir if self.tensorboard_current_logdir is not None \
+            self.tensorboard_current_logdir = self.tensorboard_current_logdir if self.tensorboard_current_logdir is not None \
                 else os.path.join(self.tensorboard_base_logdir,
                                   datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
-            tensorboard_logdir_clear = tensorboard_logdir + "-clear"
-            tensorboard_logdir_fog = tensorboard_logdir + "-fog"
+            tensorboard_logdir_clear = self.tensorboard_current_logdir + "-clear"
+            tensorboard_logdir_fog = self.tensorboard_current_logdir + "-fog"
             tensorboard_summary_writer_clear = tf.summary.create_file_writer(logdir=tensorboard_logdir_clear)
             tensorboard_summary_writer_fog = tf.summary.create_file_writer(logdir=tensorboard_logdir_fog)
 
