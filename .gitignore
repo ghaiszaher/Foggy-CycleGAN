@@ -7,5 +7,6 @@ tensorboard_logs/
 weights/
 image_logs/
 trainer_config.json
+dataset/
 
 !.idea/dictionaries/

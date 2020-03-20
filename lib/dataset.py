@@ -1,12 +1,34 @@
 import tensorflow as tf
 import tensorflow_datasets as tfds
+import pandas as pd
+import os
+
+COLUMN_PATH = 'path'
+COLUMN_INTENSITY = 'intensity'
 
 
 class DatasetInitializer:
-    def __init__(self, image_height=256, image_width=256, normalized_input=True):
+    def __init__(self, image_height=256, image_width=256, dataset_path='dataset/', normalized_input=True):
+        self.dataset_path = dataset_path
         self.image_height = image_height
         self.image_width = image_width
         self.normalized_input = normalized_input
+        self.train_clear_df = None
+        self.test_clear_df = None
+        self.train_fog_df = None
+        self.test_fog_df = None
+
+    def preprocess_image_path(self, file_path, intensity):
+        if str(file_path).lower().endswith('png'):
+            return self.process_png_image_path(file_path, intensity)
+        else:
+            return self.process_jpeg_image_path(file_path, intensity)
+
+    def process_jpeg_image_path(self, file_path, intensity):
+        return tf.io.decode_jpeg(tf.io.read_file(file_path)), intensity
+
+    def process_png_image_path(self, file_path, intensity):
+        return tf.io.decode_png(tf.io.read_file(file_path)), intensity
 
     def random_crop(self, image):
         cropped_image = tf.image.random_crop(
@@ -30,39 +52,86 @@ class DatasetInitializer:
     def normalize_image(self, image):
         image = tf.cast(image, tf.float32)
         if self.normalized_input:
-            return image/127.5-1
+            return image / 127.5 - 1
         return image / 255.
 
-    def preprocess_image_train(self, image, label):
+    def preprocess_image_train(self, image, intensity):
         image = self.normalize_image(image)
         image = self.random_jitter(image)
+        # TODO: return intensity
         return image
 
-    def preprocess_image_test(self, image, label):
+    def preprocess_image_test(self, image, intensity):
         image = self.normalize_image(image)
+        # TODO: return intensity
         return image
 
-    def prepare_dataset(self, buffer_size, batch_size, AUTOTUNE=tf.data.experimental.AUTOTUNE):
-        dataset, metadata = tfds.load('cycle_gan/horse2zebra',
-                                      with_info=True, as_supervised=True)
+    def process_annotations_file(self, file_path):
+        df = pd.read_csv(file_path, names=[COLUMN_PATH, COLUMN_INTENSITY])
+        parent = os.path.dirname(file_path)
+        df[COLUMN_PATH] = df[COLUMN_PATH].apply(lambda p: os.path.join(parent, p))
+        return df
 
-        train_A, train_B = dataset['trainA'], dataset['trainB']
-        test_A, test_B = dataset['testA'], dataset['testB']
+    @staticmethod
+    def shuffle_dataframe(df):
+        import numpy as np
+        return df.iloc[np.random.permutation(len(df))]
 
-        train_A = train_A.map(
+    @staticmethod
+    def split_dataframe(df, smaller_split):
+        l = len(df)
+        split_size = int(l * smaller_split)
+        return df.iloc[split_size:], df.iloc[:split_size]  # return larger_portion, smaller_portion
+
+    def fill_train_test_dataframes(self, test_split=0.3):
+        images_df = None
+        for s in tf.io.matching_files(os.path.join(self.dataset_path, "*annotations.csv")).numpy():
+            df = self.process_annotations_file(s.decode())
+            if images_df is None:
+                images_df = df
+            else:
+                images_df = images_df.append(df)
+        clear_df = DatasetInitializer.shuffle_dataframe(images_df[images_df[COLUMN_INTENSITY] == 0])
+        fog_df = DatasetInitializer.shuffle_dataframe(images_df[images_df[COLUMN_INTENSITY] != 0])
+        self.train_clear_df, self.test_clear_df = DatasetInitializer.split_dataframe(clear_df, test_split)
+        self.train_fog_df, self.test_fog_df = DatasetInitializer.split_dataframe(fog_df, test_split)
+
+    def image_names_generator(self, df):
+        def gen():
+            for index, row in df.iterrows():
+                yield row[COLUMN_PATH], row[COLUMN_INTENSITY]
+
+        return gen
+
+    def prepare_dataset(self, buffer_size, batch_size, dataset_dir='dataset', test_split=0.3,
+                        AUTOTUNE=tf.data.experimental.AUTOTUNE):
+
+        self.fill_train_test_dataframes()
+
+        train_clear_gen = self.image_names_generator(self.train_clear_df)
+        train_fog_gen = self.image_names_generator(self.train_fog_df)
+        test_clear_gen = self.image_names_generator(self.test_clear_df)
+        test_fog_gen = self.image_names_generator(self.test_fog_df)
+
+        output_types = (tf.string, tf.float64)
+        train_clear = tf.data.Dataset.from_generator(train_clear_gen, output_types).map(self.preprocess_image_path)
+        train_fog = tf.data.Dataset.from_generator(train_fog_gen, output_types).map(self.preprocess_image_path)
+        test_clear = tf.data.Dataset.from_generator(test_clear_gen, output_types).map(self.preprocess_image_path)
+        test_fog = tf.data.Dataset.from_generator(test_fog_gen, output_types).map(self.preprocess_image_path)
+
+        train_clear = train_clear.map(
             self.preprocess_image_train, num_parallel_calls=AUTOTUNE).cache().shuffle(
             buffer_size).batch(batch_size)
 
-        train_B = train_B.map(
+        train_fog = train_fog.map(
             self.preprocess_image_train, num_parallel_calls=AUTOTUNE).cache().shuffle(
             buffer_size).batch(batch_size)
 
-        test_A = test_A.map(
+        test_clear = test_clear.map(
             self.preprocess_image_test, num_parallel_calls=AUTOTUNE).cache().shuffle(
             buffer_size).batch(batch_size)
 
-        test_B = test_B.map(
+        test_fog = test_fog.map(
             self.preprocess_image_test, num_parallel_calls=AUTOTUNE).cache().shuffle(
             buffer_size).batch(batch_size)
-
-        return (train_A, train_B), (test_A, test_B)
+        return (train_clear, train_fog), (test_clear, test_fog)
