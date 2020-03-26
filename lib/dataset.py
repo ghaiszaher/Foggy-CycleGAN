@@ -93,7 +93,7 @@ class DatasetInitializer:
 
     def fill_train_test_dataframes(self, test_split=0.3):
         images_df = None
-        for s in tf.io.matching_files(os.path.join(self.dataset_path, "*annotations*.csv")).numpy():
+        for s in tf.io.matching_files(os.path.join(self.dataset_path, "**/Annotations*.csv")).numpy():
             df = self.process_annotations_file(s.decode())
             if images_df is None:
                 images_df = df
