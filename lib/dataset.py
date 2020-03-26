@@ -1,10 +1,29 @@
 import tensorflow as tf
-import tensorflow_datasets as tfds
 import pandas as pd
 import os
+from .tools import df_length
 
 COLUMN_PATH = 'path'
 COLUMN_INTENSITY = 'intensity'
+
+
+# Helper functions:
+def shuffle_dataframe(df):
+    import numpy as np
+    return df.iloc[np.random.permutation(df_length(df))]
+
+
+def split_dataframe(df, smaller_split_ratio):
+    split_size = int(df_length(df) * smaller_split_ratio)
+    return df.iloc[split_size:], df.iloc[:split_size]  # return larger_portion, smaller_portion
+
+
+def image_names_generator(df):
+    def gen():
+        for index, row in df.iterrows():
+            yield row[COLUMN_PATH], row[COLUMN_INTENSITY]
+
+    return gen
 
 
 class DatasetInitializer:
@@ -72,46 +91,34 @@ class DatasetInitializer:
         df[COLUMN_PATH] = df[COLUMN_PATH].apply(lambda p: os.path.join(parent, p))
         return df
 
-    @staticmethod
-    def shuffle_dataframe(df):
-        import numpy as np
-        return df.iloc[np.random.permutation(len(df))]
-
-    @staticmethod
-    def split_dataframe(df, smaller_split):
-        l = len(df)
-        split_size = int(l * smaller_split)
-        return df.iloc[split_size:], df.iloc[:split_size]  # return larger_portion, smaller_portion
-
     def fill_train_test_dataframes(self, test_split=0.3):
         images_df = None
-        for s in tf.io.matching_files(os.path.join(self.dataset_path, "*annotations.csv")).numpy():
+        for s in tf.io.matching_files(os.path.join(self.dataset_path, "*annotations*.csv")).numpy():
             df = self.process_annotations_file(s.decode())
             if images_df is None:
                 images_df = df
             else:
                 images_df = images_df.append(df)
-        clear_df = DatasetInitializer.shuffle_dataframe(images_df[images_df[COLUMN_INTENSITY] == 0])
-        fog_df = DatasetInitializer.shuffle_dataframe(images_df[images_df[COLUMN_INTENSITY] != 0])
-        self.train_clear_df, self.test_clear_df = DatasetInitializer.split_dataframe(clear_df, test_split)
-        self.train_fog_df, self.test_fog_df = DatasetInitializer.split_dataframe(fog_df, test_split)
+        clear_df = shuffle_dataframe(images_df[images_df[COLUMN_INTENSITY] == 0])
+        fog_df = shuffle_dataframe(images_df[images_df[COLUMN_INTENSITY] != 0])
+        self.train_clear_df, self.test_clear_df = split_dataframe(clear_df, test_split)
+        self.train_fog_df, self.test_fog_df = split_dataframe(fog_df, test_split)
+        print("Found {} clear images and {} fog images".format(df_length(clear_df), df_length(fog_df)))
+        print("Clear images split to {} train - {} test".format(df_length(self.train_clear_df),
+                                                                df_length(self.test_clear_df)))
+        print("Fog images split to {} train - {} test".format(df_length(self.train_fog_df),
+                                                              df_length(self.test_fog_df)))
 
-    def image_names_generator(self, df):
-        def gen():
-            for index, row in df.iterrows():
-                yield row[COLUMN_PATH], row[COLUMN_INTENSITY]
+    def prepare_dataset(self, buffer_size, batch_size,
+                        test_split=0.3,
+                        autotune=tf.data.experimental.AUTOTUNE):
 
-        return gen
+        self.fill_train_test_dataframes(test_split)
 
-    def prepare_dataset(self, buffer_size, batch_size, dataset_dir='dataset', test_split=0.3,
-                        AUTOTUNE=tf.data.experimental.AUTOTUNE):
-
-        self.fill_train_test_dataframes()
-
-        train_clear_gen = self.image_names_generator(self.train_clear_df)
-        train_fog_gen = self.image_names_generator(self.train_fog_df)
-        test_clear_gen = self.image_names_generator(self.test_clear_df)
-        test_fog_gen = self.image_names_generator(self.test_fog_df)
+        train_clear_gen = image_names_generator(self.train_clear_df)
+        train_fog_gen = image_names_generator(self.train_fog_df)
+        test_clear_gen = image_names_generator(self.test_clear_df)
+        test_fog_gen = image_names_generator(self.test_fog_df)
 
         output_types = (tf.string, tf.float64)
         train_clear = tf.data.Dataset.from_generator(train_clear_gen, output_types).map(self.preprocess_image_path)
@@ -120,18 +127,18 @@ class DatasetInitializer:
         test_fog = tf.data.Dataset.from_generator(test_fog_gen, output_types).map(self.preprocess_image_path)
 
         train_clear = train_clear.map(
-            self.preprocess_image_train, num_parallel_calls=AUTOTUNE).cache().shuffle(
+            self.preprocess_image_train, num_parallel_calls=autotune).cache().shuffle(
             buffer_size).batch(batch_size)
 
         train_fog = train_fog.map(
-            self.preprocess_image_train, num_parallel_calls=AUTOTUNE).cache().shuffle(
+            self.preprocess_image_train, num_parallel_calls=autotune).cache().shuffle(
             buffer_size).batch(batch_size)
 
         test_clear = test_clear.map(
-            self.preprocess_image_test, num_parallel_calls=AUTOTUNE).cache().shuffle(
+            self.preprocess_image_test, num_parallel_calls=autotune).cache().shuffle(
             buffer_size).batch(batch_size)
 
         test_fog = test_fog.map(
-            self.preprocess_image_test, num_parallel_calls=AUTOTUNE).cache().shuffle(
+            self.preprocess_image_test, num_parallel_calls=autotune).cache().shuffle(
             buffer_size).batch(batch_size)
         return (train_clear, train_fog), (test_clear, test_fog)
