@@ -26,6 +26,7 @@ def image_names_generator(df):
     return gen
 
 
+# noinspection PyMethodMayBeStatic
 class DatasetInitializer:
     def __init__(self, image_height=256, image_width=256, dataset_path='dataset/', normalized_input=True):
         self.dataset_path = dataset_path
@@ -57,7 +58,8 @@ class DatasetInitializer:
 
     def random_jitter(self, image):
         # resizing to 286 x 286 x 3
-        image = tf.image.resize(image, [286, 286],
+        jitter_offset = 30
+        image = tf.image.resize(image, [self.image_height + jitter_offset, self.image_width + jitter_offset],
                                 method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
 
         # randomly cropping to 256 x 256 x 3
@@ -82,6 +84,8 @@ class DatasetInitializer:
 
     def preprocess_image_test(self, image, intensity):
         image = self.normalize_image(image)
+        image = tf.image.resize(image, [self.image_height, self.image_width],
+                                method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
         # TODO: return intensity
         return image
 
