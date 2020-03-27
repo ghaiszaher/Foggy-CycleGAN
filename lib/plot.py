@@ -86,6 +86,7 @@ def plot_generators_and_discriminators_predictions(test_input_clear, prediction_
             plt.imshow(to_display)
         else:
             plt.imshow(to_display, cmap='RdBu_r')
+            # TODO: unify colorbar range
             plt.colorbar()
     return plt
 
