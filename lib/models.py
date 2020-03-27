@@ -76,7 +76,7 @@ class ModelsBuilder:
         return result
 
     # TODO: Check which is better, instancenorm or batchnorm
-    def build_generator(self, use_transmission_map=False, use_gauss=True, norm_type='instancenorm'):
+    def build_generator(self, use_transmission_map=False, use_gauss_filter=True, norm_type='instancenorm'):
         inputs = tf.keras.layers.Input(shape=[self.image_height, self.image_height, self.output_channels])
 
         down_stack = [
@@ -126,7 +126,7 @@ class ModelsBuilder:
             if self.normalized_input:
                 transmission = tf.keras.layers.Lambda(lambda t: t * 0.5 + 0.5, name='fix_transmission_range')(
                     transmission)
-            if use_gauss:
+            if use_gauss_filter:
                 from . import gauss
                 transmission = gauss.gauss_blur_model([self.image_height, self.image_width, 1], name="gauss_blur")(
                     transmission)
