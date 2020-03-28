@@ -29,13 +29,14 @@ def image_names_generator(df):
 
 # noinspection PyMethodMayBeStatic
 class DatasetInitializer:
-    def __init__(self, image_height=256, image_width=256, dataset_path='dataset/', normalized_input=True,
+    def __init__(self, image_height=256, image_width=256, channels=3, dataset_path='dataset/', normalized_input=True,
                  sample_images_path='sample_images/'):
         self.dataset_path = dataset_path
         self.sample_images_path = sample_images_path
         self.image_height = image_height
         self.image_width = image_width
         self.normalized_input = normalized_input
+        self.channels = channels
         self.train_clear_df = None
         self.test_clear_df = None
         self.train_fog_df = None
@@ -50,10 +51,10 @@ class DatasetInitializer:
             return self.process_jpeg_image_path(file_path, intensity)
 
     def process_jpeg_image_path(self, file_path, intensity):
-        return tf.io.decode_jpeg(tf.io.read_file(file_path)), intensity
+        return tf.io.decode_jpeg(tf.io.read_file(file_path), channels=self.channels), intensity
 
     def process_png_image_path(self, file_path, intensity):
-        return tf.io.decode_png(tf.io.read_file(file_path)), intensity
+        return tf.io.decode_png(tf.io.read_file(file_path), channels=self.channels), intensity
 
     def random_crop(self, image):
         cropped_image = tf.image.random_crop(
