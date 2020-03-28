@@ -56,20 +56,49 @@ class DatasetInitializer:
     def process_png_image_path(self, file_path, intensity):
         return tf.io.decode_png(tf.io.read_file(file_path), channels=self.channels), intensity
 
-    def random_crop(self, image):
-        cropped_image = tf.image.random_crop(
-            image, size=[self.image_height, self.image_width, 3])
+    def resize_to_thumbnail(self, image, target_height, target_width, random_crop=False):
+        if tf.equal(tf.size(image), 0):
+            return image
+        target_ratio = tf.divide(target_width, target_height)
+        shape = tf.shape(image)
+        original_height = tf.cast(shape[0], tf.int32)
+        original_width = tf.cast(shape[1], tf.int32)
+        original_height_f = tf.cast(original_height, tf.float64)
+        original_width_f = tf.cast(original_width, tf.float64)
+        # if original_height is None or original_width is None:
+        #     return tf.image.resize(image, [target_width, target_height],
+        #                        method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+        ratio = tf.divide(original_width_f, original_height_f)
+        if ratio > target_ratio:
+            crop_width = tf.cast(tf.round(tf.multiply(original_height_f, target_ratio)), tf.int32)
+            crop_height = original_height
+        else:
+            crop_width = original_width
+            crop_height = tf.cast(tf.round(tf.divide(original_width_f, target_ratio)), tf.int32)
 
-        return cropped_image
+        if random_crop:
+            image = tf.image.random_crop(
+                image, size=[crop_height, crop_width, self.channels])
+        else:
+            # Crop in the center
+            center = tf.cast(tf.divide(original_height, 2), tf.int32), tf.cast(tf.math.divide(original_width, 2),
+                                                                               tf.int32)
+            start = center[0] - tf.cast(tf.math.divide(crop_height, 2), tf.int32), center[1] - tf.cast(
+                tf.math.divide(crop_width, 2), tf.int32)
+
+            image = tf.image.crop_to_bounding_box(image, start[0], start[1], crop_height, crop_width)
+
+        return tf.image.resize(image, [target_width, target_height],
+                               method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
 
     def random_jitter(self, image):
         # resizing to 286 x 286 x 3
         jitter_offset = 30
-        image = tf.image.resize(image, [self.image_height + jitter_offset, self.image_width + jitter_offset],
-                                method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+        image = self.resize_to_thumbnail(image, self.image_height + jitter_offset, self.image_width + jitter_offset)
 
         # randomly cropping to 256 x 256 x 3
-        image = self.random_crop(image)
+        image = tf.image.random_crop(
+            image, size=[self.image_height, self.image_width, self.channels])
 
         # random mirroring
         image = tf.image.random_flip_left_right(image)
@@ -90,8 +119,7 @@ class DatasetInitializer:
 
     def preprocess_image_test(self, image, intensity):
         image = self.normalize_image(image)
-        image = tf.image.resize(image, [self.image_height, self.image_width],
-                                method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+        image = self.resize_to_thumbnail(image, self.image_height, self.image_width)
         # TODO: return intensity
         return image
 
