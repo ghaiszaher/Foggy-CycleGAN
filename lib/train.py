@@ -1,4 +1,6 @@
 import tensorflow as tf
+from . import plot
+import os
 
 
 class Trainer:
@@ -192,40 +194,42 @@ class Trainer:
 
         sample_clear = sample_test[0]
         sample_fog = sample_test[1]
-        prediction_clear2fog = self.generator_clear2fog(sample_clear)
-        prediction_fog2clear = self.generator_fog2clear(sample_fog)
-        discriminator_clear_output = self.discriminator_clear(sample_clear)
-        discriminator_fog_output = self.discriminator_fog(sample_fog)
-        discriminator_fakeclear_output = self.discriminator_clear(prediction_fog2clear)
-        discriminator_fakefog_output = self.discriminator_fog(prediction_clear2fog)
-        from . import plot
-        import os
-        if plot_sample_gen_and_disc or save_sample_gen_and_disc_output:
-            plt = plot.plot_generators_and_discriminators_predictions(sample_clear, prediction_clear2fog,
-                                                                      sample_fog,
-                                                                      prediction_fog2clear,
-                                                                      discriminator_clear_output,
-                                                                      discriminator_fog_output,
-                                                                      discriminator_fakeclear_output,
-                                                                      discriminator_fakefog_output,
-                                                                      normalized_input=self.normalized_input)
-            if save_sample_gen_and_disc_output:
-                plt.savefig(
-                    os.path.join(self.image_log_path, "gen_and_disc_output_epoch_{}.jpg".format(self.total_epochs)),
-                    bbox_inches='tight', pad_inches=0)
-            if plot_sample_gen_and_disc:
-                plt.show()
+        for (ind, (clear, fog)) in enumerate(tf.data.Dataset.zip((sample_clear, sample_fog))):
+            prediction_clear2fog = self.generator_clear2fog(clear)
+            prediction_fog2clear = self.generator_fog2clear(fog)
+            discriminator_clear_output = self.discriminator_clear(clear)
+            discriminator_fog_output = self.discriminator_fog(fog)
+            discriminator_fakeclear_output = self.discriminator_clear(prediction_fog2clear)
+            discriminator_fakefog_output = self.discriminator_fog(prediction_clear2fog)
+            if plot_sample_gen_and_disc or save_sample_gen_and_disc_output:
+                plt = plot.plot_generators_and_discriminators_predictions(clear, prediction_clear2fog,
+                                                                          fog,
+                                                                          prediction_fog2clear,
+                                                                          discriminator_clear_output,
+                                                                          discriminator_fog_output,
+                                                                          discriminator_fakeclear_output,
+                                                                          discriminator_fakefog_output,
+                                                                          normalized_input=self.normalized_input)
+                if save_sample_gen_and_disc_output:
+                    plt.savefig(
+                        os.path.join(self.image_log_path,
+                                     "sample_{}_gen_and_disc_output_epoch_{:03d}.jpg".format(ind, self.total_epochs)),
+                        bbox_inches='tight', pad_inches=0)
+                if plot_sample_gen_and_disc:
+                    plt.show()
 
-        if plot_sample_generator:
-            plot.plot_generators_predictions_v2(sample_clear, prediction_clear2fog, sample_fog,
-                                                prediction_fog2clear, normalized_input=self.normalized_input).show()
-        if save_sample_generator_output:
-            img = plot.get_generator_square_image(sample_clear, prediction_clear2fog, sample_fog,
-                                                  prediction_fog2clear,
-                                                  normalized_input=self.normalized_input)
-            tf.io.write_file(
-                os.path.join(self.image_log_path, "gen_output_epoch_{}.jpg".format(self.total_epochs)),
-                tf.io.encode_jpeg(img))
+            if plot_sample_generator:
+                plot.plot_generators_predictions_v2(clear, prediction_clear2fog, fog,
+                                                    prediction_fog2clear,
+                                                    normalized_input=self.normalized_input).show()
+            if save_sample_generator_output:
+                img = plot.get_generator_square_image(clear, prediction_clear2fog, fog,
+                                                      prediction_fog2clear,
+                                                      normalized_input=self.normalized_input)
+                tf.io.write_file(
+                    os.path.join(self.image_log_path,
+                                 "sample_{}_gen_output_epoch_{:03d}.jpg".format(ind, self.total_epochs)),
+                    tf.io.encode_jpeg(img))
 
     def train(self, train_clear, train_fog, epochs=40, epoch_save_rate=1, progress_print_rate=10,
               clear_output_callback=None, use_tensorboard=False, sample_test=None, plot_sample_generator=False,

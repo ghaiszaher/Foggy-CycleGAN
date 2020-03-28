@@ -8,9 +8,10 @@ COLUMN_INTENSITY = 'intensity'
 
 
 # Helper functions:
-def shuffle_dataframe(df):
-    import numpy as np
-    return df.iloc[np.random.permutation(df_length(df))]
+# TODO: Delete
+# def shuffle_dataframe(df):
+#     import numpy as np
+#     return df.iloc[np.random.permutation(df_length(df))]
 
 
 def split_dataframe(df, smaller_split_ratio):
@@ -28,8 +29,10 @@ def image_names_generator(df):
 
 # noinspection PyMethodMayBeStatic
 class DatasetInitializer:
-    def __init__(self, image_height=256, image_width=256, dataset_path='dataset/', normalized_input=True):
+    def __init__(self, image_height=256, image_width=256, dataset_path='dataset/', normalized_input=True,
+                 sample_images_path='sample_images/'):
         self.dataset_path = dataset_path
+        self.sample_images_path = sample_images_path
         self.image_height = image_height
         self.image_width = image_width
         self.normalized_input = normalized_input
@@ -37,6 +40,8 @@ class DatasetInitializer:
         self.test_clear_df = None
         self.train_fog_df = None
         self.test_fog_df = None
+        self.sample_clear_df = None
+        self.sample_fog_df = None
 
     def preprocess_image_path(self, file_path, intensity):
         if str(file_path).lower().endswith('png'):
@@ -95,16 +100,20 @@ class DatasetInitializer:
         df[COLUMN_PATH] = df[COLUMN_PATH].apply(lambda p: os.path.join(parent, p))
         return df
 
-    def fill_train_test_dataframes(self, test_split=0.3):
-        images_df = None
+    def annotations_to_dataframe(self, path):
+        df = None
         for s in tf.io.matching_files(os.path.join(self.dataset_path, "**/Annotations*.csv")).numpy():
             df = self.process_annotations_file(s.decode())
-            if images_df is None:
-                images_df = df
+            if df is None:
+                df = df
             else:
-                images_df = images_df.append(df)
-        clear_df = shuffle_dataframe(images_df[images_df[COLUMN_INTENSITY] == 0])
-        fog_df = shuffle_dataframe(images_df[images_df[COLUMN_INTENSITY] != 0])
+                df = df.append(df)
+        return df
+
+    def fill_train_test_dataframes(self, test_split=0.3):
+        images_df = self.annotations_to_dataframe(self.dataset_path)
+        clear_df = images_df[images_df[COLUMN_INTENSITY] == 0]
+        fog_df = images_df[images_df[COLUMN_INTENSITY] != 0]
         self.train_clear_df, self.test_clear_df = split_dataframe(clear_df, test_split)
         self.train_fog_df, self.test_fog_df = split_dataframe(fog_df, test_split)
         print("Found {} clear images and {} fog images".format(df_length(clear_df), df_length(fog_df)))
@@ -113,22 +122,34 @@ class DatasetInitializer:
         print("Fog images split to {} train - {} test".format(df_length(self.train_fog_df),
                                                               df_length(self.test_fog_df)))
 
+    def fill_sample_dataframes(self):
+        images_df = self.annotations_to_dataframe(self.sample_images_path)
+        self.sample_clear_df = images_df[images_df[COLUMN_INTENSITY] == 0]
+        self.sample_fog_df = images_df[images_df[COLUMN_INTENSITY] != 0]
+        print("Found {} sample clear images and {} sample fog images".format(df_length(self.sample_clear_df),
+                                                                             df_length(self.sample_fog_df)))
+
     def prepare_dataset(self, buffer_size, batch_size,
                         test_split=0.3,
-                        autotune=tf.data.experimental.AUTOTUNE):
-
+                        autotune=tf.data.experimental.AUTOTUNE,
+                        return_sample=True):
         self.fill_train_test_dataframes(test_split)
+        self.fill_sample_dataframes()
 
         train_clear_gen = image_names_generator(self.train_clear_df)
         train_fog_gen = image_names_generator(self.train_fog_df)
         test_clear_gen = image_names_generator(self.test_clear_df)
         test_fog_gen = image_names_generator(self.test_fog_df)
+        sample_clear_gen = image_names_generator(self.sample_clear_df)
+        sample_fog_gen = image_names_generator(self.sample_fog_df)
 
         output_types = (tf.string, tf.float64)
         train_clear = tf.data.Dataset.from_generator(train_clear_gen, output_types).map(self.preprocess_image_path)
         train_fog = tf.data.Dataset.from_generator(train_fog_gen, output_types).map(self.preprocess_image_path)
         test_clear = tf.data.Dataset.from_generator(test_clear_gen, output_types).map(self.preprocess_image_path)
         test_fog = tf.data.Dataset.from_generator(test_fog_gen, output_types).map(self.preprocess_image_path)
+        sample_clear = tf.data.Dataset.from_generator(sample_clear_gen, output_types).map(self.preprocess_image_path)
+        sample_fog = tf.data.Dataset.from_generator(sample_fog_gen, output_types).map(self.preprocess_image_path)
 
         train_clear = train_clear.map(
             self.preprocess_image_train, num_parallel_calls=autotune).cache().shuffle(
@@ -145,4 +166,14 @@ class DatasetInitializer:
         test_fog = test_fog.map(
             self.preprocess_image_test, num_parallel_calls=autotune).cache().shuffle(
             buffer_size).batch(batch_size)
+
+        sample_clear = sample_clear.map(
+            self.preprocess_image_test, num_parallel_calls=autotune).cache().batch(batch_size)
+
+        sample_fog = sample_fog.map(
+            self.preprocess_image_test, num_parallel_calls=autotune).cache().batch(batch_size)
+
+        if return_sample:
+            return (train_clear, train_fog), (test_clear, test_fog), (sample_clear, sample_fog)
+
         return (train_clear, train_fog), (test_clear, test_fog)
