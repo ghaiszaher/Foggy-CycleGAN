@@ -72,6 +72,7 @@ class Trainer:
             self.image_log_path = config['image_log_path']
 
         print("Trainer config loaded from {}".format(self.config_path))
+        print("Trainer config values: ", config)
 
     def discriminator_loss(self, real, generated):
         real_loss = self.loss_obj(tf.ones_like(real), real)
