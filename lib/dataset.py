@@ -101,14 +101,18 @@ class DatasetInitializer:
         return df
 
     def annotations_to_dataframe(self, path):
-        df = None
-        for s in tf.io.matching_files(os.path.join(self.dataset_path, "**/Annotations*.csv")).numpy():
+        import numpy as np
+        images_df = None
+        files1 = tf.io.matching_files(os.path.join(path, "**/Annotations*.csv")).numpy()
+        files2 = tf.io.matching_files(os.path.join(path, "Annotations*.csv")).numpy()
+        files = np.concatenate((files1, files2))
+        for s in files:
             df = self.process_annotations_file(s.decode())
-            if df is None:
-                df = df
+            if images_df is None:
+                images_df = df
             else:
-                df = df.append(df)
-        return df
+                images_df = images_df.append(df)
+        return images_df
 
     def fill_train_test_dataframes(self, test_split=0.3):
         images_df = self.annotations_to_dataframe(self.dataset_path)
