@@ -265,8 +265,10 @@ class Trainer:
 
         length = "Unknown"
         for epoch in range(epochs):
-            print_with_timestamp("Starting with epoch {} (total {})".format(epoch + 1,
-                                                                            self.total_epochs + 1))
+            print_with_timestamp("Starting with epoch {}/{} (total {}/{})".format(epoch + 1,
+                                                                                  epochs,
+                                                                                  self.total_epochs + 1,
+                                                                                  self.total_epochs + epoch))
             clear2fog_loss_total = fog2clear_loss_total = disc_clear_loss_total = disc_fog_loss_total = 0
             self.epoch_callback(sample_test, plot_sample_generator, plot_sample_gen_and_disc,
                                 save_sample_generator_output, save_sample_gen_and_disc_output)
