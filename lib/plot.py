@@ -73,7 +73,7 @@ def plot_generators_and_discriminators_predictions(test_input_clear, prediction_
                     prediction_fog2clear[0], discriminator_fakeclear_output[0, ..., -1]]
     title = ['Real Clear', 'Is real clear? Expected: Yes',
              'To Fog', 'Is real fog? Expected: No',
-             'Fog', 'Is real clear? Expected: Yes',
+             'Fog', 'Is real fog? Expected: Yes',
              'To Clear', 'Is real clear? Expected: No']
     for i in range(8):
         plt.subplot(2, 4, i + 1)
