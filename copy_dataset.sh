@@ -4,7 +4,7 @@ do
     printf "unzipping "
     printf $(basename "${z}")
     printf "...\n"
-    unzip -q "${z}" -d /content/dataset/
+    unzip -q -n "${z}" -d /content/dataset/
     echo "Done."
 done
 echo "All files unzipped."
