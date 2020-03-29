@@ -8,7 +8,7 @@ def plot_generators_predictions(model_clear2fog, test_input_clear, model_fog2cle
 
     display_list = [test_input_clear[0], prediction_clear2fog[0], test_input_fog[0], prediction_fog2clear[0]]
     title = ['Clear', 'To Fog', 'Fog', 'To Clear']
-    #TODO: add fog intensity to the plot
+    # TODO: add fog intensity to the plot
 
     for i in range(4):
         plt.subplot(2, 2, i + 1)
@@ -29,7 +29,7 @@ def plot_generators_predictions_v2(test_input_clear, prediction_clear2fog, test_
 
     display_list = [test_input_clear[0], prediction_clear2fog[0], test_input_fog[0], prediction_fog2clear[0]]
     title = ['Clear', 'To Fog', 'Fog', 'To Clear']
-    #TODO: add fog intensity to the plot
+    # TODO: add fog intensity to the plot
 
     for i in range(4):
         plt.subplot(2, 2, i + 1)
@@ -53,7 +53,7 @@ def plot_discriminators_predictions(discriminator_clear, sample_clear, discrimin
     plt.subplot(1, 2, 2)
     plt.title('Is real fog?')
     plt.imshow(discriminator_fog(sample_fog)[0, ..., -1], cmap='RdBu_r')
-    #TODO: add fog intensity to the plot
+    # TODO: add fog intensity to the plot
 
     return plt
 
@@ -66,7 +66,7 @@ def plot_generators_and_discriminators_predictions(test_input_clear, prediction_
     import matplotlib.pyplot as plt
     plt.figure(figsize=(20, 10))
 
-    #TODO: add fog intensity to the plot
+    # TODO: add fog intensity to the plot
     display_list = [test_input_clear[0], discriminator_clear_output[0, ..., -1],
                     prediction_clear2fog[0], discriminator_fakefog_output[0, ..., -1],
                     test_input_fog[0], discriminator_fog_output[0, ..., -1],
@@ -86,7 +86,7 @@ def plot_generators_and_discriminators_predictions(test_input_clear, prediction_
             plt.imshow(to_display)
         else:
             plt.imshow(to_display, cmap='RdBu_r')
-            # TODO: unify colorbar range
+            plt.clim(-4, 4)
             plt.colorbar()
     return plt
 
