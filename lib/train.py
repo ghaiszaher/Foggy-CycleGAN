@@ -73,6 +73,8 @@ class Trainer:
 
         print("Trainer config loaded from {}".format(self.config_path))
         print("Trainer config values: ", config)
+        for key in config:
+            print("\t{}: {}".format(key, config[key]))
 
     def discriminator_loss(self, real, generated):
         real_loss = self.loss_obj(tf.ones_like(real), real)
