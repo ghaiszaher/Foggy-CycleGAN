@@ -57,6 +57,18 @@ class DatasetInitializer:
         return tf.io.decode_png(tf.io.read_file(file_path), channels=self.channels), intensity
 
     def resize_to_thumbnail(self, image, target_height, target_width, random_crop=False):
+        """
+        Acts like general thumbnail methods: resizes the image to [target_height,target_width] without
+        altering the original images aspect ratio. First it it crops the image either in the center or randomly
+        according to `random_crop` parameter, the cropped image will have same aspect ratio as the target image.
+        Then the image will be resized to [target_height, target_width] using Nearest Neighbour method
+        :param image: The image you want to resize
+        :param target_height: The target height
+        :param target_width: The target width
+        :param random_crop: if True, the image will initially be randomly cropped, otherwise it will be cropped
+            from the center
+        :return:
+        """
         if tf.equal(tf.size(image), 0):
             return image
         target_ratio = tf.divide(target_width, target_height)
