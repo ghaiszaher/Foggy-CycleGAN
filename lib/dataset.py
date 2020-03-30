@@ -171,7 +171,7 @@ class DatasetInitializer:
         images_df = self.annotations_to_dataframe(self.sample_images_path)
         self.sample_clear_df = images_df[images_df[COLUMN_INTENSITY] == 0]
         self.sample_fog_df = images_df[images_df[COLUMN_INTENSITY] != 0]
-        print("Found {} sample clear images and {} sample fog images".format(df_length(self.sample_clear_df),
+        print("Found {} sample clear image(s) and {} sample fog image(s)".format(df_length(self.sample_clear_df),
                                                                              df_length(self.sample_fog_df)))
 
     def prepare_dataset(self, buffer_size, batch_size,
