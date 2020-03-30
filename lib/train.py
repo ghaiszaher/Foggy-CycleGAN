@@ -303,13 +303,14 @@ class Trainer:
                                                                                               self.total_epochs + 1,
                                                                                               self.weights_path))
             print_with_timestamp('Time taken for epoch {} (total {})'
-                                 ' is {} sec (effective: {} sec)'.format(epoch + 1,
-                                                                         self.total_epochs + 1,
-                                                                         time.time() - start,
-                                                                         end - start))
-            print_with_timestamp('clear2fog loss: {}, fog2clear loss: {}\n\tdisc_clear loss: {}, disc_fog loss: {}'
-                                 .format(clear2fog_loss_total, fog2clear_loss_total, disc_clear_loss_total,
-                                         disc_fog_loss_total))
+                                 ' is {:0.4f} sec (effective: {:0.4f} sec)'.format(epoch + 1,
+                                                                                   self.total_epochs + 1,
+                                                                                   time.time() - start,
+                                                                                   end - start))
+            print_with_timestamp(
+                'clear2fog loss: {:0.4f}, fog2clear loss: {:0.4f}\n\tdisc_clear loss: {:0.4f}, disc_fog loss: {:0.4f}'
+                .format(clear2fog_loss_total, fog2clear_loss_total, disc_clear_loss_total,
+                        disc_fog_loss_total))
             # Tensorboard
             if use_tensorboard:
                 with tensorboard_summary_writer_clear.as_default():
