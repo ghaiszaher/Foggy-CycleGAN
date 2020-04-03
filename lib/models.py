@@ -86,10 +86,10 @@ class ModelsBuilder:
         image_input = tf.keras.layers.Input(shape=[self.image_height, self.image_height, self.output_channels])
         inputs = image_input
         x = image_input
-        if use_intensity:
-            intensity_input = tf.keras.layers.Input(shape=(1,))
-            inputs = [image_input, intensity_input]
-            x = self.concatenate_image_and_intensity(x, intensity_input)
+        # if use_intensity:
+        #     intensity_input = tf.keras.layers.Input(shape=(1,))
+        #     inputs = [image_input, intensity_input]
+        #     x = self.concatenate_image_and_intensity(x, intensity_input)
 
         down_stack = [
             self.downsample(64, 4, norm_type=norm_type, apply_norm=False),  # (bs, 128, 128, 64)
@@ -126,6 +126,18 @@ class ModelsBuilder:
             skips.append(x)
         skips = reversed(skips[:-1])
 
+        # TODO : Delete or keep
+        ############ TEMPORARY TEST ##########
+        if use_intensity:
+            intensity_input = tf.keras.layers.Input(shape=(1,))
+            inputs = [image_input, intensity_input]
+            x = tf.keras.layers.Flatten()(x)
+            size = x.shape[1]
+            x = tf.keras.layers.Concatenate()([x,intensity_input])
+            x = tf.keras.layers.Dense(size)(x)
+            x = tf.keras.layers.Reshape((1,1,size))(x)
+        ########################################
+
         # Upsampling and establishing the skip connections
         for up, skip in zip(up_stack, skips):
             x = up(x)
@@ -152,10 +164,10 @@ class ModelsBuilder:
         inp = tf.keras.layers.Input(shape=[256, 256, 3], name='input_image')
         inputs = inp
         x = inp
-        if use_intensity:
-            intensity_input = tf.keras.layers.Input(shape=(1,))
-            inputs = [inp, intensity_input]
-            x = self.concatenate_image_and_intensity(x, intensity_input)
+        # if use_intensity:
+        #     intensity_input = tf.keras.layers.Input(shape=(1,))
+        #     inputs = [inp, intensity_input]
+        #     x = self.concatenate_image_and_intensity(x, intensity_input)
 
         down1 = self.downsample(64, 4, norm_type=norm_type, apply_norm=False)(x)  # (bs, 128, 128, 64)
         down2 = self.downsample(128, 4, norm_type=norm_type)(down1)  # (bs, 64, 64, 128)
