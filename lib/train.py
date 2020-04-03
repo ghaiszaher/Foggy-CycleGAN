@@ -259,7 +259,7 @@ class Trainer:
                                                                           normalized_input=self.normalized_input,
                                                                           close_fig=not plot_sample_gen_and_disc)
                 if save_sample_gen_and_disc_output:
-                    plt.savefig(
+                    fig.savefig(
                         os.path.join(self.image_log_path,
                                      "sample_{}_gen_and_disc_output_epoch_{:03d}.jpg".format(ind, self.total_epochs)),
                         bbox_inches='tight', pad_inches=0)
