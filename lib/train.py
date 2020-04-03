@@ -1,6 +1,7 @@
 import tensorflow as tf
 from . import plot
 import os
+from matplotlib import pyplot as plt
 
 
 class Trainer:
@@ -235,7 +236,8 @@ class Trainer:
                                                                 discriminator_fog_output,
                                                                 discriminator_fakeclear_output,
                                                                 discriminator_fakefog_output,
-                                                                normalized_input=self.normalized_input).show()
+                                                                normalized_input=self.normalized_input)
+            plt.show()
 
         for (ind, ((clear, clear_intensity), (fog, fog_intensity))) in enumerate(
                 tf.data.Dataset.zip((sample_clear, sample_fog))):
@@ -246,7 +248,7 @@ class Trainer:
             discriminator_fakeclear_output = self.discriminator_clear(prediction_fog2clear)
             discriminator_fakefog_output = self.discriminator_fog((prediction_clear2fog, clear_intensity))
             if plot_sample_gen_and_disc or save_sample_gen_and_disc_output:
-                plt = plot.plot_generators_and_discriminators_predictions((clear, clear_intensity),
+                fig = plot.plot_generators_and_discriminators_predictions((clear, clear_intensity),
                                                                           prediction_clear2fog,
                                                                           (fog, fog_intensity),
                                                                           prediction_fog2clear,
@@ -261,14 +263,19 @@ class Trainer:
                         os.path.join(self.image_log_path,
                                      "sample_{}_gen_and_disc_output_epoch_{:03d}.jpg".format(ind, self.total_epochs)),
                         bbox_inches='tight', pad_inches=0)
+
                 if plot_sample_gen_and_disc:
                     plt.show()
+                else:
+                    plt.close(fig)
 
             if plot_sample_generator:
                 plot.plot_generators_predictions_v2((clear, clear_intensity), prediction_clear2fog,
                                                     (fog, fog_intensity),
                                                     prediction_fog2clear,
-                                                    normalized_input=self.normalized_input).show()
+                                                    normalized_input=self.normalized_input)
+                plt.show()
+
             if save_sample_generator_output:
                 img = plot.get_generator_square_image((clear, clear_intensity), prediction_clear2fog,
                                                       (fog, fog_intensity),

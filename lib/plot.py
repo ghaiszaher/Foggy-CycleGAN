@@ -34,7 +34,7 @@ def plot_generators_predictions(model_clear2fog, test_input_clear, model_fog2cle
 
     if close_fig:
         plt.close(fig)
-    return plt
+    return fig
 
 
 def plot_generators_predictions_v2(test_input_clear, prediction_clear2fog, test_input_fog, prediction_fog2clear,
@@ -59,7 +59,7 @@ def plot_generators_predictions_v2(test_input_clear, prediction_clear2fog, test_
         plt.axis('off')
     if close_fig:
         plt.close(fig)
-    return plt
+    return fig
 
 
 def plot_discriminators_predictions(discriminator_clear, sample_clear, discriminator_fog, sample_fog, close_fig=False):
@@ -77,7 +77,7 @@ def plot_discriminators_predictions(discriminator_clear, sample_clear, discrimin
 
     if close_fig:
         plt.close(fig)
-    return plt
+    return fig
 
 
 def plot_generators_and_discriminators_predictions(test_input_clear, prediction_clear2fog, test_input_fog,
@@ -116,7 +116,7 @@ def plot_generators_and_discriminators_predictions(test_input_clear, prediction_
             plt.colorbar()
     if close_fig:
         plt.close(fig)
-    return plt
+    return fig
 
 
 def get_generator_square_image(test_input_clear, prediction_clear2fog, test_input_fog, prediction_fog2clear,
