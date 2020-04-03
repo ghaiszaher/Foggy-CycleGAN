@@ -12,10 +12,16 @@ def split_dataframe(df, smaller_split_ratio):
     return df.iloc[split_size:], df.iloc[:split_size]  # return larger_portion, smaller_portion
 
 
-def image_names_generator(df):
+def image_names_generator(df, randomize_input=False, random_range=(0.1, 0.95)):
     def gen():
         for index, row in df.iterrows():
-            yield row[COLUMN_PATH], tf.expand_dims(tf.cast(row[COLUMN_INTENSITY], tf.float32),axis=-1)
+            path = row[COLUMN_PATH]
+            if randomize_input:
+                intensity = tf.random.uniform((1,), minval=random_range[0], maxval=random_range[1], dtype=tf.float32)
+                intensity = tf.round(intensity * 100) / 100
+            else:
+                intensity = tf.expand_dims(tf.cast(row[COLUMN_INTENSITY], tf.float32), axis=-1)
+            yield path, intensity
 
     return gen
 
@@ -172,11 +178,11 @@ class DatasetInitializer:
         self.fill_train_test_dataframes(test_split)
         self.fill_sample_dataframes()
 
-        train_clear_gen = image_names_generator(self.train_clear_df)
+        train_clear_gen = image_names_generator(self.train_clear_df, randomize_input=True)
         train_fog_gen = image_names_generator(self.train_fog_df)
-        test_clear_gen = image_names_generator(self.test_clear_df)
+        test_clear_gen = image_names_generator(self.test_clear_df, randomize_input=True)
         test_fog_gen = image_names_generator(self.test_fog_df)
-        sample_clear_gen = image_names_generator(self.sample_clear_df)
+        sample_clear_gen = image_names_generator(self.sample_clear_df, randomize_input=True)
         sample_fog_gen = image_names_generator(self.sample_fog_df)
 
         output_types = (tf.string, tf.float32)
