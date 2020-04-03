@@ -128,27 +128,42 @@ class Trainer:
             model.save_weights(path)
 
     @tf.function
-    def train_step(self, real_clear, real_fog):
+    def train_step(self, real_clear_batch, real_fog_batch):
         # persistent is set to True because the tape is used more than
         # once to calculate the gradients.
         with tf.GradientTape(persistent=True) as tape:
-            # Generator G translates X -> Y
-            # Generator F translates Y -> X.
-            fake_fog = self.generator_clear2fog(real_clear, training=True)
-            cycled_clear = self.generator_fog2clear(fake_fog, training=True)
+            real_clear = real_clear_batch[0]
+            clear_intensity = real_clear_batch[1]
+            real_fog = real_fog_batch[0]
+            fog_intensity = real_fog_batch[1]
 
-            fake_clear = self.generator_fog2clear(real_fog, training=True)
-            cycled_fog = self.generator_clear2fog(fake_clear, training=True)
+            # Phase 1: clear2fog2clear and fog2clear2fog
+            fake_fog = self.generator_clear2fog((real_clear, clear_intensity), training=True)
+            cycled_clear = self.generator_fog2clear((fake_fog, clear_intensity), training=True)
 
+            fake_clear = self.generator_fog2clear((real_fog, fog_intensity), training=True)
+            cycled_fog = self.generator_clear2fog((fake_clear, fog_intensity), training=True)
+
+            # Phase 2: Indentity Loss
             # same_x and same_y are used for identity loss.
-            same_clear = self.generator_fog2clear(real_clear, training=True)
-            same_fog = self.generator_clear2fog(real_fog, training=True)
+            same_clear = self.generator_fog2clear((real_clear, clear_intensity), training=True)
+            same_fog = self.generator_clear2fog((real_fog, fog_intensity), training=True)
 
+            # Phase 3: Real images to Discriminators
+            # discriminator_clear takes only an image
             disc_real_clear = self.discriminator_clear(real_clear, training=True)
-            disc_real_fog = self.discriminator_fog(real_fog, training=True)
+            disc_real_fog = self.discriminator_fog((real_fog, fog_intensity), training=True)
 
+            # Phase 4: Fake (Generated) images to Discriminators
             disc_fake_clear = self.discriminator_clear(fake_clear, training=True)
-            disc_fake_fog = self.discriminator_fog(fake_fog, training=True)
+            disc_fake_fog = self.discriminator_fog((fake_fog, clear_intensity), training=True)
+
+            # Phase 5: Clear2Clear
+            # Pass a clear image for c2f generator with intensity = 0 and expect to have the same image
+            no_intensity = tf.zeros_like(clear_intensity)
+            if self.normalized_input:
+                no_intensity = no_intensity - 1.0
+            fake_clear2clear = self.generator_clear2fog((real_clear, no_intensity), training=True)
 
             # calculate the loss
             gen_clear2fog_loss = self.generator_loss(disc_fake_fog)
@@ -158,9 +173,12 @@ class Trainer:
                                                                                                      cycled_fog)
 
             # Total generator loss = adversarial loss + cycle loss
-            total_gen_clear2fog_loss = gen_clear2fog_loss + total_cycle_loss + self.identity_loss(real_fog, same_fog)
-            total_gen_fog2clear_loss = gen_fog2clear_loss + total_cycle_loss + self.identity_loss(real_clear,
-                                                                                                  same_clear)
+            total_gen_clear2fog_loss = gen_clear2fog_loss + total_cycle_loss + \
+                                       self.identity_loss(real_fog, same_fog) + \
+                                       self.identity_loss(real_clear, fake_clear2clear)
+            total_gen_fog2clear_loss = gen_fog2clear_loss + \
+                                       total_cycle_loss + \
+                                       self.identity_loss(real_clear, same_clear)
             disc_clear_loss = self.discriminator_loss(disc_real_clear, disc_fake_clear)
             disc_fog_loss = self.discriminator_loss(disc_real_fog, disc_fake_fog)
 
@@ -187,7 +205,8 @@ class Trainer:
         return total_gen_clear2fog_loss, total_gen_fog2clear_loss, disc_clear_loss, disc_fog_loss
 
     def epoch_callback(self, sample_test, plot_sample_generator, plot_sample_gen_and_disc,
-                       save_sample_generator_output, save_sample_gen_and_disc_output):
+                       save_sample_generator_output, save_sample_gen_and_disc_output,
+                       plot_only_one_sample_gen_and_disc):
         if sample_test is None:
             return
         if type(sample_test) is not list and type(sample_test) is not tuple:
@@ -197,16 +216,37 @@ class Trainer:
 
         sample_clear = sample_test[0]
         sample_fog = sample_test[1]
-        for (ind, (clear, fog)) in enumerate(tf.data.Dataset.zip((sample_clear, sample_fog))):
-            prediction_clear2fog = self.generator_clear2fog(clear)
-            prediction_fog2clear = self.generator_fog2clear(fog)
+
+        if plot_only_one_sample_gen_and_disc:
+            clear, clear_intensity = next(iter(sample_clear.shuffle(10).take(1)))
+            fog, fog_intensity = next(iter(sample_fog.shuffle(10).take(1)))
+            prediction_clear2fog = self.generator_clear2fog((clear, clear_intensity))
+            prediction_fog2clear = self.generator_fog2clear((fog, fog_intensity))
             discriminator_clear_output = self.discriminator_clear(clear)
-            discriminator_fog_output = self.discriminator_fog(fog)
+            discriminator_fog_output = self.discriminator_fog((fog, fog_intensity))
             discriminator_fakeclear_output = self.discriminator_clear(prediction_fog2clear)
-            discriminator_fakefog_output = self.discriminator_fog(prediction_clear2fog)
+            discriminator_fakefog_output = self.discriminator_fog((prediction_clear2fog, clear_intensity))
+            plot.plot_generators_and_discriminators_predictions((clear, clear_intensity), prediction_clear2fog,
+                                                                (fog, fog_intensity),
+                                                                prediction_fog2clear,
+                                                                discriminator_clear_output,
+                                                                discriminator_fog_output,
+                                                                discriminator_fakeclear_output,
+                                                                discriminator_fakefog_output,
+                                                                normalized_input=self.normalized_input).show()
+
+        for (ind, ((clear, clear_intensity), (fog, fog_intensity))) in enumerate(
+                tf.data.Dataset.zip((sample_clear, sample_fog))):
+            prediction_clear2fog = self.generator_clear2fog((clear, clear_intensity))
+            prediction_fog2clear = self.generator_fog2clear((fog, fog_intensity))
+            discriminator_clear_output = self.discriminator_clear(clear)
+            discriminator_fog_output = self.discriminator_fog((fog, fog_intensity))
+            discriminator_fakeclear_output = self.discriminator_clear(prediction_fog2clear)
+            discriminator_fakefog_output = self.discriminator_fog((prediction_clear2fog, clear_intensity))
             if plot_sample_gen_and_disc or save_sample_gen_and_disc_output:
-                plt = plot.plot_generators_and_discriminators_predictions(clear, prediction_clear2fog,
-                                                                          fog,
+                plt = plot.plot_generators_and_discriminators_predictions((clear, clear_intensity),
+                                                                          prediction_clear2fog,
+                                                                          (fog, fog_intensity),
                                                                           prediction_fog2clear,
                                                                           discriminator_clear_output,
                                                                           discriminator_fog_output,
@@ -222,11 +262,13 @@ class Trainer:
                     plt.show()
 
             if plot_sample_generator:
-                plot.plot_generators_predictions_v2(clear, prediction_clear2fog, fog,
+                plot.plot_generators_predictions_v2((clear, clear_intensity), prediction_clear2fog,
+                                                    (fog, fog_intensity),
                                                     prediction_fog2clear,
                                                     normalized_input=self.normalized_input).show()
             if save_sample_generator_output:
-                img = plot.get_generator_square_image(clear, prediction_clear2fog, fog,
+                img = plot.get_generator_square_image((clear, clear_intensity), prediction_clear2fog,
+                                                      (fog, fog_intensity),
                                                       prediction_fog2clear,
                                                       normalized_input=self.normalized_input)
                 tf.io.write_file(
@@ -236,8 +278,8 @@ class Trainer:
 
     def train(self, train_clear, train_fog, epochs=40, epoch_save_rate=1, progress_print_rate=10,
               clear_output_callback=None, use_tensorboard=False, sample_test=None, plot_sample_generator=False,
-              plot_sample_gen_and_disc=True, save_sample_generator_output=True, save_sample_gen_and_disc_output=True,
-              load_config_first=True, save_config_each_epoch=True):
+              plot_sample_gen_and_disc=False, save_sample_generator_output=True, save_sample_gen_and_disc_output=True,
+              load_config_first=True, save_config_each_epoch=True, plot_only_one_sample_gen_and_disc=True):
         from lib.tools import print_with_timestamp
         import time
         import datetime
@@ -272,7 +314,8 @@ class Trainer:
                                                                                   total_target_epochs))
             clear2fog_loss_total = fog2clear_loss_total = disc_clear_loss_total = disc_fog_loss_total = 0
             self.epoch_callback(sample_test, plot_sample_generator, plot_sample_gen_and_disc,
-                                save_sample_generator_output, save_sample_gen_and_disc_output)
+                                save_sample_generator_output, save_sample_gen_and_disc_output,
+                                plot_only_one_sample_gen_and_disc)
 
             dataset = tf.data.Dataset.zip((train_clear, train_fog))
             n = 0
@@ -309,8 +352,8 @@ class Trainer:
                                                                                    end - start))
             print_with_timestamp(
                 'clear2fog loss: {:0.4f}, fog2clear loss: {:0.4f}\n\tdisc_clear loss: {:0.4f}, disc_fog loss: {:0.4f}'
-                .format(clear2fog_loss_total, fog2clear_loss_total, disc_clear_loss_total,
-                        disc_fog_loss_total))
+                    .format(clear2fog_loss_total, fog2clear_loss_total, disc_clear_loss_total,
+                            disc_fog_loss_total))
             # Tensorboard
             if use_tensorboard:
                 with tensorboard_summary_writer_clear.as_default():

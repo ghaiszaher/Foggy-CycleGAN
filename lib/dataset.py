@@ -134,19 +134,19 @@ class DatasetInitializer:
 
         return image
 
-    def normalize_image(self, image):
+    def normalize_image_and_intensity(self, image, intensity):
         image = tf.cast(image, tf.float32)
         if self.normalized_input:
-            return image / 127.5 - 1
-        return image / 255.
+            return image / 127.5 - 1, intensity * 2 - 1
+        return image / 255., intensity
 
     def preprocess_image_train(self, image, intensity):
-        image = self.normalize_image(image)
+        image, intensity = self.normalize_image_and_intensity(image, intensity)
         image = self.random_jitter(image)
         return image, intensity
 
     def preprocess_image_test(self, image, intensity):
-        image = self.normalize_image(image)
+        image, intensity = self.normalize_image_and_intensity(image, intensity)
         image = self.resize_to_thumbnail(image, self.image_height, self.image_width)
         return image, intensity
 

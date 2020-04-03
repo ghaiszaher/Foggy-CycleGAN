@@ -1,8 +1,11 @@
-def get_images_and_intensities(test_input_clear, test_input_fog):
+def get_images_and_intensities(test_input_clear, test_input_fog, normalized_input=True):
     image_clear = test_input_clear[0][0]
     intensity_clear = test_input_clear[1][0][0]
     image_fog = test_input_fog[0][0]
     intensity_fog = test_input_fog[1][0][0]
+    if normalized_input:
+        intensity_clear = intensity_clear * 0.5 + 0.5
+        intensity_fog = intensity_fog * 0.5 + 0.5
     return image_clear, intensity_clear, image_fog, intensity_fog
 
 
@@ -13,7 +16,8 @@ def plot_generators_predictions(model_clear2fog, test_input_clear, model_fog2cle
     prediction_fog2clear = model_fog2clear(test_input_fog)
 
     image_clear, intensity_clear, image_fog, intensity_fog = get_images_and_intensities(test_input_clear,
-                                                                                        test_input_fog)
+                                                                                        test_input_fog,
+                                                                                        normalized_input)
     plt.figure(figsize=(12, 12))
 
     display_list = [image_clear, prediction_clear2fog[0], image_fog, prediction_fog2clear[0]]
@@ -35,7 +39,8 @@ def plot_generators_predictions_v2(test_input_clear, prediction_clear2fog, test_
     import matplotlib.pyplot as plt
 
     image_clear, intensity_clear, image_fog, intensity_fog = get_images_and_intensities(test_input_clear,
-                                                                                        test_input_fog)
+                                                                                        test_input_fog,
+                                                                                        normalized_input)
     plt.figure(figsize=(12, 12))
 
     display_list = [image_clear, prediction_clear2fog[0], image_fog, prediction_fog2clear[0]]
@@ -76,7 +81,8 @@ def plot_generators_and_discriminators_predictions(test_input_clear, prediction_
     import matplotlib.pyplot as plt
 
     image_clear, intensity_clear, image_fog, intensity_fog = get_images_and_intensities(test_input_clear,
-                                                                                        test_input_fog)
+                                                                                        test_input_fog,
+                                                                                        normalized_input)
 
     plt.figure(figsize=(20, 10))
 
@@ -110,7 +116,8 @@ def get_generator_square_image(test_input_clear, prediction_clear2fog, test_inpu
     import tensorflow as tf
 
     image_clear, intensity_clear, image_fog, intensity_fog = get_images_and_intensities(test_input_clear,
-                                                                                        test_input_fog)
+                                                                                        test_input_fog,
+                                                                                        normalized_input)
 
     row1 = tf.concat((image_clear, prediction_clear2fog[0]), axis=1)
     row2 = tf.concat((image_fog, prediction_fog2clear[0]), axis=1)
