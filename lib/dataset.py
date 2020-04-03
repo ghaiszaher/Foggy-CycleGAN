@@ -5,6 +5,8 @@ from .tools import df_length
 
 COLUMN_PATH = 'path'
 COLUMN_INTENSITY = 'intensity'
+INTENSITY_VALUE_RANDOM = 'random'
+INTENSITY_VALUE_SAMPLE = 'sample'
 
 
 def split_dataframe(df, smaller_split_ratio):
@@ -12,16 +14,32 @@ def split_dataframe(df, smaller_split_ratio):
     return df.iloc[split_size:], df.iloc[:split_size]  # return larger_portion, smaller_portion
 
 
-def image_names_generator(df, randomize_input=False, random_range=(0.1, 0.95)):
+def image_names_generator(df, intensity_value=None, random_range=(0.1, 0.95)):
+    """
+    returns a generator that yields one row of the dataframe at a time.
+    :param df:
+    :param intensity_value: possible values: [None, 'random', 'sample'].
+        None: the intensity value will be returned from the dataframe.
+        'random': the intensity will be generated randomly in the range `random_range`
+        'sample': generator will yield 9 rows values, each with an intensity from the range [0.1,0.9]
+    :param random_range:
+    :return:
+    """
+
     def gen():
         for index, row in df.iterrows():
             path = row[COLUMN_PATH]
-            if randomize_input:
+            if intensity_value == INTENSITY_VALUE_RANDOM:
                 intensity = tf.random.uniform((1,), minval=random_range[0], maxval=random_range[1], dtype=tf.float32)
                 intensity = tf.round(intensity * 100) / 100
+                yield path, intensity
+            elif intensity_value == INTENSITY_VALUE_SAMPLE:
+                for i in range(1, 10):
+                    intensity = tf.expand_dims(tf.cast(i / 10, tf.float32), axis=-1)
+                    yield path, intensity
             else:
                 intensity = tf.expand_dims(tf.cast(row[COLUMN_INTENSITY], tf.float32), axis=-1)
-            yield path, intensity
+                yield path, intensity
 
     return gen
 
@@ -178,11 +196,11 @@ class DatasetInitializer:
         self.fill_train_test_dataframes(test_split)
         self.fill_sample_dataframes()
 
-        train_clear_gen = image_names_generator(self.train_clear_df, randomize_input=True)
+        train_clear_gen = image_names_generator(self.train_clear_df, intensity_value=INTENSITY_VALUE_RANDOM)
         train_fog_gen = image_names_generator(self.train_fog_df)
-        test_clear_gen = image_names_generator(self.test_clear_df, randomize_input=True)
+        test_clear_gen = image_names_generator(self.test_clear_df, intensity_value=INTENSITY_VALUE_RANDOM)
         test_fog_gen = image_names_generator(self.test_fog_df)
-        sample_clear_gen = image_names_generator(self.sample_clear_df, randomize_input=True)
+        sample_clear_gen = image_names_generator(self.sample_clear_df, intensity_value=INTENSITY_VALUE_SAMPLE)
         sample_fog_gen = image_names_generator(self.sample_fog_df)
 
         output_types = (tf.string, tf.float32)
