@@ -1,14 +1,23 @@
+def get_images_and_intensities(test_input_clear, test_input_fog):
+    image_clear = test_input_clear[0][0]
+    intensity_clear = test_input_clear[1][0][0]
+    image_fog = test_input_fog[0][0]
+    intensity_fog = test_input_fog[1][0][0]
+    return image_clear, intensity_clear, image_fog, intensity_fog
+
+
 def plot_generators_predictions(model_clear2fog, test_input_clear, model_fog2clear, test_input_fog,
                                 normalized_input=True):
     import matplotlib.pyplot as plt
     prediction_clear2fog = model_clear2fog(test_input_clear)
     prediction_fog2clear = model_fog2clear(test_input_fog)
 
+    image_clear, intensity_clear, image_fog, intensity_fog = get_images_and_intensities(test_input_clear,
+                                                                                        test_input_fog)
     plt.figure(figsize=(12, 12))
 
-    display_list = [test_input_clear[0], prediction_clear2fog[0], test_input_fog[0], prediction_fog2clear[0]]
-    title = ['Clear', 'To Fog', 'Fog', 'To Clear']
-    # TODO: add fog intensity to the plot
+    display_list = [image_clear, prediction_clear2fog[0], image_fog, prediction_fog2clear[0]]
+    title = ['Clear', 'To Fog {:0.2}'.format(intensity_clear), 'Fog {:0.2}'.format(intensity_fog), 'To Clear']
 
     for i in range(4):
         plt.subplot(2, 2, i + 1)
@@ -25,11 +34,12 @@ def plot_generators_predictions_v2(test_input_clear, prediction_clear2fog, test_
                                    normalized_input=True):
     import matplotlib.pyplot as plt
 
+    image_clear, intensity_clear, image_fog, intensity_fog = get_images_and_intensities(test_input_clear,
+                                                                                        test_input_fog)
     plt.figure(figsize=(12, 12))
 
-    display_list = [test_input_clear[0], prediction_clear2fog[0], test_input_fog[0], prediction_fog2clear[0]]
-    title = ['Clear', 'To Fog', 'Fog', 'To Clear']
-    # TODO: add fog intensity to the plot
+    display_list = [image_clear, prediction_clear2fog[0], image_fog, prediction_fog2clear[0]]
+    title = ['Clear', 'To Fog {:0.2}'.format(intensity_clear), 'Fog {:0.2}'.format(intensity_fog), 'To Clear']
 
     for i in range(4):
         plt.subplot(2, 2, i + 1)
@@ -64,16 +74,20 @@ def plot_generators_and_discriminators_predictions(test_input_clear, prediction_
                                                    discriminator_fakeclear_output, discriminator_fakefog_output,
                                                    normalized_input=True):
     import matplotlib.pyplot as plt
+
+    image_clear, intensity_clear, image_fog, intensity_fog = get_images_and_intensities(test_input_clear,
+                                                                                        test_input_fog)
+
     plt.figure(figsize=(20, 10))
 
     # TODO: add fog intensity to the plot
-    display_list = [test_input_clear[0], discriminator_clear_output[0, ..., -1],
+    display_list = [image_clear, discriminator_clear_output[0, ..., -1],
                     prediction_clear2fog[0], discriminator_fakefog_output[0, ..., -1],
-                    test_input_fog[0], discriminator_fog_output[0, ..., -1],
+                    image_fog, discriminator_fog_output[0, ..., -1],
                     prediction_fog2clear[0], discriminator_fakeclear_output[0, ..., -1]]
     title = ['Real Clear', 'Is real clear? Expected: Yes',
-             'To Fog', 'Is real fog? Expected: No',
-             'Fog', 'Is real fog? Expected: Yes',
+             'To Fog {:0.2}'.format(intensity_clear), 'Is real fog? Expected: No',
+             'Fog {:0.2}'.format(intensity_fog), 'Is real fog? Expected: Yes',
              'To Clear', 'Is real clear? Expected: No']
     for i in range(8):
         plt.subplot(2, 4, i + 1)
@@ -94,8 +108,12 @@ def plot_generators_and_discriminators_predictions(test_input_clear, prediction_
 def get_generator_square_image(test_input_clear, prediction_clear2fog, test_input_fog, prediction_fog2clear,
                                normalized_input=True):
     import tensorflow as tf
-    row1 = tf.concat((test_input_clear[0], prediction_clear2fog[0]), axis=1)
-    row2 = tf.concat((test_input_fog[0], prediction_fog2clear[0]), axis=1)
+
+    image_clear, intensity_clear, image_fog, intensity_fog = get_images_and_intensities(test_input_clear,
+                                                                                        test_input_fog)
+
+    row1 = tf.concat((image_clear, prediction_clear2fog[0]), axis=1)
+    row2 = tf.concat((image_fog, prediction_fog2clear[0]), axis=1)
     img = tf.concat((row1, row2), axis=0)
     if normalized_input:
         img = (img + 1) * 127.5

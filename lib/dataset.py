@@ -7,13 +7,6 @@ COLUMN_PATH = 'path'
 COLUMN_INTENSITY = 'intensity'
 
 
-# Helper functions:
-# TODO: Delete
-# def shuffle_dataframe(df):
-#     import numpy as np
-#     return df.iloc[np.random.permutation(df_length(df))]
-
-
 def split_dataframe(df, smaller_split_ratio):
     split_size = int(df_length(df) * smaller_split_ratio)
     return df.iloc[split_size:], df.iloc[:split_size]  # return larger_portion, smaller_portion
@@ -22,7 +15,7 @@ def split_dataframe(df, smaller_split_ratio):
 def image_names_generator(df):
     def gen():
         for index, row in df.iterrows():
-            yield row[COLUMN_PATH], row[COLUMN_INTENSITY]
+            yield row[COLUMN_PATH], tf.expand_dims(tf.cast(row[COLUMN_INTENSITY], tf.float32),axis=-1)
 
     return gen
 
@@ -75,8 +68,8 @@ class DatasetInitializer:
         shape = tf.shape(image)
         original_height = tf.cast(shape[0], tf.int32)
         original_width = tf.cast(shape[1], tf.int32)
-        original_height_f = tf.cast(original_height, tf.float64)
-        original_width_f = tf.cast(original_width, tf.float64)
+        original_height_f = tf.cast(original_height, tf.float32)
+        original_width_f = tf.cast(original_width, tf.float32)
         # if original_height is None or original_width is None:
         #     return tf.image.resize(image, [target_width, target_height],
         #                        method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
@@ -126,14 +119,12 @@ class DatasetInitializer:
     def preprocess_image_train(self, image, intensity):
         image = self.normalize_image(image)
         image = self.random_jitter(image)
-        # TODO: return intensity
-        return image
+        return image, intensity
 
     def preprocess_image_test(self, image, intensity):
         image = self.normalize_image(image)
         image = self.resize_to_thumbnail(image, self.image_height, self.image_width)
-        # TODO: return intensity
-        return image
+        return image, intensity
 
     def process_annotations_file(self, file_path):
         df = pd.read_csv(file_path, names=[COLUMN_PATH, COLUMN_INTENSITY])
@@ -172,7 +163,7 @@ class DatasetInitializer:
         self.sample_clear_df = images_df[images_df[COLUMN_INTENSITY] == 0]
         self.sample_fog_df = images_df[images_df[COLUMN_INTENSITY] != 0]
         print("Found {} sample clear image(s) and {} sample fog image(s)".format(df_length(self.sample_clear_df),
-                                                                             df_length(self.sample_fog_df)))
+                                                                                 df_length(self.sample_fog_df)))
 
     def prepare_dataset(self, buffer_size, batch_size,
                         test_split=0.3,
@@ -188,7 +179,7 @@ class DatasetInitializer:
         sample_clear_gen = image_names_generator(self.sample_clear_df)
         sample_fog_gen = image_names_generator(self.sample_fog_df)
 
-        output_types = (tf.string, tf.float64)
+        output_types = (tf.string, tf.float32)
         train_clear = tf.data.Dataset.from_generator(train_clear_gen, output_types).map(self.preprocess_image_path)
         train_fog = tf.data.Dataset.from_generator(train_fog_gen, output_types).map(self.preprocess_image_path)
         test_clear = tf.data.Dataset.from_generator(test_clear_gen, output_types).map(self.preprocess_image_path)

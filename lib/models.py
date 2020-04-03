@@ -75,9 +75,21 @@ class ModelsBuilder:
 
         return result
 
+    def concatenate_image_and_intensity(self, image_input, intensity_input):
+        intensity = tf.keras.layers.RepeatVector(self.image_height * self.image_height)(intensity_input)
+        intensity = tf.keras.layers.Reshape((self.image_height, self.image_height, 1))(intensity)
+        return tf.keras.layers.Concatenate(axis=-1)([image_input, intensity])
+
     # TODO: Check which is better, instancenorm or batchnorm
-    def build_generator(self, use_transmission_map=False, use_gauss_filter=True, norm_type='instancenorm'):
-        inputs = tf.keras.layers.Input(shape=[self.image_height, self.image_height, self.output_channels])
+    def build_generator(self, use_transmission_map=False, use_gauss_filter=True, norm_type='instancenorm',
+                        use_intensity=True):
+        image_input = tf.keras.layers.Input(shape=[self.image_height, self.image_height, self.output_channels])
+        inputs = image_input
+        x = image_input
+        if use_intensity:
+            intensity_input = tf.keras.layers.Input(shape=(1,))
+            inputs = [image_input, intensity_input]
+            x = self.concatenate_image_and_intensity(x, intensity_input)
 
         down_stack = [
             self.downsample(64, 4, norm_type=norm_type, apply_norm=False),  # (bs, 128, 128, 64)
@@ -107,8 +119,6 @@ class ModelsBuilder:
                                                name='transmission_layer' if use_transmission_map else 'output_layer',
                                                kernel_initializer=initializer,
                                                activation='tanh' if self.normalized_input else 'sigmoid')  # (bs, 256, 256, 1)
-        x = inputs
-
         # Downsampling through the model
         skips = []
         for down in down_stack:
@@ -131,16 +141,23 @@ class ModelsBuilder:
                 transmission = gauss.gauss_blur_model([self.image_height, self.image_width, 1], name="gauss_blur")(
                     transmission)
 
-            x = tf.keras.layers.multiply([inputs, transmission])
+            x = tf.keras.layers.multiply([image_input, transmission])
             one_minus_t = tf.keras.layers.Lambda(lambda t: 1 - t, name='transmission_invert')(transmission)
             x = tf.keras.layers.add([x, one_minus_t])
 
         return tf.keras.Model(inputs=inputs, outputs=x)
 
-    def build_discriminator(self, norm_type='instancenorm'):
+    def build_discriminator(self, norm_type='instancenorm', use_intensity=True):
         initializer = tf.random_normal_initializer(0., 0.02)
         inp = tf.keras.layers.Input(shape=[256, 256, 3], name='input_image')
-        down1 = self.downsample(64, 4, norm_type=norm_type, apply_norm=False)(inp)  # (bs, 128, 128, 64)
+        inputs = inp
+        x = inp
+        if use_intensity:
+            intensity_input = tf.keras.layers.Input(shape=(1,))
+            inputs = [inp, intensity_input]
+            x = self.concatenate_image_and_intensity(x, intensity_input)
+
+        down1 = self.downsample(64, 4, norm_type=norm_type, apply_norm=False)(x)  # (bs, 128, 128, 64)
         down2 = self.downsample(128, 4, norm_type=norm_type)(down1)  # (bs, 64, 64, 128)
         down3 = self.downsample(256, 4, norm_type=norm_type)(down2)  # (bs, 32, 32, 256)
 
@@ -156,5 +173,5 @@ class ModelsBuilder:
         zero_pad2 = tf.keras.layers.ZeroPadding2D()(leaky_relu)  # (bs, 33, 33, 512)
         last = tf.keras.layers.Conv2D(1, 4, strides=1,
                                       kernel_initializer=initializer)(zero_pad2)  # (bs, 30, 30, 1)
-        return tf.keras.Model(inputs=inp, outputs=last)
+        return tf.keras.Model(inputs=inputs, outputs=last)
         # TODO: should add activation to last layer?
