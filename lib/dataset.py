@@ -192,7 +192,7 @@ class DatasetInitializer:
     def prepare_dataset(self, buffer_size, batch_size,
                         test_split=0.3,
                         autotune=tf.data.experimental.AUTOTUNE,
-                        return_sample=True):
+                        return_sample=True, sample_batch_size=1):
         self.fill_train_test_dataframes(test_split)
         self.fill_sample_dataframes()
 
@@ -228,10 +228,10 @@ class DatasetInitializer:
             buffer_size).batch(batch_size)
 
         sample_clear = sample_clear.map(
-            self.preprocess_image_test, num_parallel_calls=autotune).cache().batch(batch_size)
+            self.preprocess_image_test, num_parallel_calls=autotune).cache().batch(sample_batch_size)
 
         sample_fog = sample_fog.map(
-            self.preprocess_image_test, num_parallel_calls=autotune).cache().batch(batch_size)
+            self.preprocess_image_test, num_parallel_calls=autotune).cache().batch(sample_batch_size)
 
         if return_sample:
             return (train_clear, train_fog), (test_clear, test_fog), (sample_clear, sample_fog)

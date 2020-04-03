@@ -10,7 +10,7 @@ def get_images_and_intensities(test_input_clear, test_input_fog, normalized_inpu
 
 
 def plot_generators_predictions(model_clear2fog, test_input_clear, model_fog2clear, test_input_fog,
-                                normalized_input=True):
+                                normalized_input=True, close_fig=False):
     import matplotlib.pyplot as plt
     prediction_clear2fog = model_clear2fog(test_input_clear)
     prediction_fog2clear = model_fog2clear(test_input_fog)
@@ -18,7 +18,7 @@ def plot_generators_predictions(model_clear2fog, test_input_clear, model_fog2cle
     image_clear, intensity_clear, image_fog, intensity_fog = get_images_and_intensities(test_input_clear,
                                                                                         test_input_fog,
                                                                                         normalized_input)
-    plt.figure(figsize=(12, 12))
+    fig = plt.figure(figsize=(12, 12))
 
     display_list = [image_clear, prediction_clear2fog[0], image_fog, prediction_fog2clear[0]]
     title = ['Clear', 'To Fog {:0.2}'.format(intensity_clear), 'Fog {:0.2}'.format(intensity_fog), 'To Clear']
@@ -31,17 +31,20 @@ def plot_generators_predictions(model_clear2fog, test_input_clear, model_fog2cle
             to_display = to_display * 0.5 + 0.5
         plt.imshow(to_display)
         plt.axis('off')
+
+    if close_fig:
+        plt.close(fig)
     return plt
 
 
 def plot_generators_predictions_v2(test_input_clear, prediction_clear2fog, test_input_fog, prediction_fog2clear,
-                                   normalized_input=True):
+                                   normalized_input=True, close_fig=False):
     import matplotlib.pyplot as plt
 
     image_clear, intensity_clear, image_fog, intensity_fog = get_images_and_intensities(test_input_clear,
                                                                                         test_input_fog,
                                                                                         normalized_input)
-    plt.figure(figsize=(12, 12))
+    fig = plt.figure(figsize=(12, 12))
 
     display_list = [image_clear, prediction_clear2fog[0], image_fog, prediction_fog2clear[0]]
     title = ['Clear', 'To Fog {:0.2}'.format(intensity_clear), 'Fog {:0.2}'.format(intensity_fog), 'To Clear']
@@ -54,12 +57,15 @@ def plot_generators_predictions_v2(test_input_clear, prediction_clear2fog, test_
             to_display = to_display * 0.5 + 0.5
         plt.imshow(to_display)
         plt.axis('off')
+    if close_fig:
+        plt.close(fig)
     return plt
 
 
-def plot_discriminators_predictions(discriminator_clear, sample_clear, discriminator_fog, sample_fog):
+def plot_discriminators_predictions(discriminator_clear, sample_clear, discriminator_fog, sample_fog, close_fig=False):
     import matplotlib.pyplot as plt
-    plt.figure(figsize=(8, 8))
+
+    fig = plt.figure(figsize=(8, 8))
 
     plt.subplot(1, 2, 1)
     plt.title('Is real clear?')
@@ -68,8 +74,9 @@ def plot_discriminators_predictions(discriminator_clear, sample_clear, discrimin
     plt.subplot(1, 2, 2)
     plt.title('Is real fog?')
     plt.imshow(discriminator_fog(sample_fog)[0, ..., -1], cmap='RdBu_r')
-    # TODO: add fog intensity to the plot
 
+    if close_fig:
+        plt.close(fig)
     return plt
 
 
@@ -77,16 +84,15 @@ def plot_generators_and_discriminators_predictions(test_input_clear, prediction_
                                                    prediction_fog2clear,
                                                    discriminator_clear_output, discriminator_fog_output,
                                                    discriminator_fakeclear_output, discriminator_fakefog_output,
-                                                   normalized_input=True):
+                                                   normalized_input=True, close_fig=False):
     import matplotlib.pyplot as plt
 
     image_clear, intensity_clear, image_fog, intensity_fog = get_images_and_intensities(test_input_clear,
                                                                                         test_input_fog,
                                                                                         normalized_input)
 
-    plt.figure(figsize=(20, 10))
+    fig = plt.figure(figsize=(20, 10))
 
-    # TODO: add fog intensity to the plot
     display_list = [image_clear, discriminator_clear_output[0, ..., -1],
                     prediction_clear2fog[0], discriminator_fakefog_output[0, ..., -1],
                     image_fog, discriminator_fog_output[0, ..., -1],
@@ -108,6 +114,8 @@ def plot_generators_and_discriminators_predictions(test_input_clear, prediction_
             plt.imshow(to_display, cmap='RdBu_r')
             plt.clim(-4, 4)
             plt.colorbar()
+    if close_fig:
+        plt.close(fig)
     return plt
 
 

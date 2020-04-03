@@ -214,6 +214,8 @@ class Trainer:
         if len(sample_test) != 2:
             raise Exception("sample_test should contain 2 elements!")
 
+        print("Plotting and saving epoch's results...")
+
         sample_clear = sample_test[0]
         sample_fog = sample_test[1]
 
@@ -252,7 +254,8 @@ class Trainer:
                                                                           discriminator_fog_output,
                                                                           discriminator_fakeclear_output,
                                                                           discriminator_fakefog_output,
-                                                                          normalized_input=self.normalized_input)
+                                                                          normalized_input=self.normalized_input,
+                                                                          close_fig=not plot_sample_gen_and_disc)
                 if save_sample_gen_and_disc_output:
                     plt.savefig(
                         os.path.join(self.image_log_path,
