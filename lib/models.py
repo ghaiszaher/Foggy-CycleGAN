@@ -99,7 +99,7 @@ class ModelsBuilder:
             self.downsample(512, 4, norm_type=norm_type),  # (bs, 8, 8, 512)
             self.downsample(512, 4, norm_type=norm_type),  # (bs, 4, 4, 512)
             self.downsample(512, 4, norm_type=norm_type),  # (bs, 2, 2, 512)
-            self.downsample(512, 4, norm_type=norm_type),  # (bs, 1, 1, 512)
+            self.downsample(511, 4, norm_type=norm_type),  # (bs, 1, 1, 512) # Change Temporarily TODO: Check
         ]
 
         up_stack = [
@@ -127,7 +127,7 @@ class ModelsBuilder:
         skips = reversed(skips[:-1])
 
         # TODO : Delete or keep
-        ############ TEMPORARY TEST ##########
+        ############ Add Dense Layer - TEST ##########
         if use_intensity:
             intensity_input = tf.keras.layers.Input(shape=(1,))
             inputs = [image_input, intensity_input]
@@ -136,7 +136,15 @@ class ModelsBuilder:
             x = tf.keras.layers.Concatenate()([x,intensity_input])
             x = tf.keras.layers.Dense(size)(x)
             x = tf.keras.layers.Reshape((1,1,size))(x)
-        ########################################
+        ##############################################
+
+        ############ Add Dense Layer - TEST ##########
+        if use_intensity:
+            intensity_input = tf.keras.layers.Input(shape=(1,))
+            inputs = [image_input, intensity_input]
+            intensity_reshaped = tf.keras.layers.Reshape((1,1,1))(intensity_input)
+            x = tf.keras.layers.Concatenate()([x,intensity_reshaped])
+        ##############################################
 
         # Upsampling and establishing the skip connections
         for up, skip in zip(up_stack, skips):
