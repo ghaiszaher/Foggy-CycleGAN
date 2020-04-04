@@ -127,10 +127,20 @@ class ModelsBuilder:
         skips = reversed(skips[:-1])
 
         # TODO : Delete or keep
-        ############ Add Dense Layer - TEST ##########
+        ########### Make a 1x1x512 vector of intensity and merge with downsample ########
         if use_intensity:
             intensity_input = tf.keras.layers.Input(shape=(1,))
             inputs = [image_input, intensity_input]
+            intensity = tf.keras.layers.RepeatVector(512)(intensity_input)
+            intensity = tf.keras.layers.Reshape((1, 1, 512))(intensity)
+            x = tf.keras.layers.Concatenate(axis=-1)([x, intensity])
+            x = self.downsample(512, 1, norm_type=norm_type)(x)
+        #################################################################################
+
+        ############ Add Dense Layer - TEST ##########
+        # if use_intensity:
+        #     intensity_input = tf.keras.layers.Input(shape=(1,))
+        #     inputs = [image_input, intensity_input]
         #     x = tf.keras.layers.Flatten()(x)
         #     size = x.shape[1]
         #     x = tf.keras.layers.Concatenate()([x,intensity_input])
@@ -138,13 +148,13 @@ class ModelsBuilder:
         #     x = tf.keras.layers.Reshape((1,1,size))(x)
         ##############################################
 
-        ############ Add Dense Layer - TEST ##########
+        ############ Concatenate number with Downsample - TEST ##########
         # if use_intensity:
         #     intensity_input = tf.keras.layers.Input(shape=(1,))
         #     inputs = [image_input, intensity_input]
         #     intensity_reshaped = tf.keras.layers.Reshape((1,1,1))(intensity_input)
         #     x = tf.keras.layers.Concatenate()([x,intensity_reshaped])
-        ##############################################
+        ##################################################################
 
         # Upsampling and establishing the skip connections
         for up, skip in zip(up_stack, skips):
