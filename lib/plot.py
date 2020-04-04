@@ -136,3 +136,33 @@ def get_generator_square_image(test_input_clear, prediction_clear2fog, test_inpu
         img = img * 255
     img = tf.cast(img, tf.uint8)
     return img
+
+
+def plot_clear2fog_intensity(model_clear2fog, image_clear, intensity=0.5,
+                             normalized_input=True, close_fig=False):
+    import matplotlib.pyplot as plt
+    import tensorflow as tf
+
+    original_intensity = intensity
+    if normalized_input:
+        intensity = intensity * 2 - 1
+    intensity = tf.expand_dims(tf.expand_dims(tf.convert_to_tensor(intensity), 0), 0)
+    prediction_clear2fog = model_clear2fog((tf.expand_dims(image_clear, 0), intensity))
+
+    fig = plt.figure(figsize=(12, 6))
+
+    display_list = [image_clear, prediction_clear2fog[0]]
+    title = ['Clear', 'To Fog {:0.2}'.format(original_intensity)]
+
+    for i in range(2):
+        plt.subplot(1, 2, i + 1)
+        plt.title(title[i])
+        to_display = display_list[i]
+        if normalized_input:
+            to_display = to_display * 0.5 + 0.5
+        plt.imshow(to_display)
+        plt.axis('off')
+
+    if close_fig:
+        plt.close(fig)
+    return fig
