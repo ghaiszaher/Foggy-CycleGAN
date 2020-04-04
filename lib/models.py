@@ -128,14 +128,14 @@ class ModelsBuilder:
 
         # TODO : Delete or keep
         ############ Add Dense Layer - TEST ##########
-        if use_intensity:
-            intensity_input = tf.keras.layers.Input(shape=(1,))
-            inputs = [image_input, intensity_input]
-            x = tf.keras.layers.Flatten()(x)
-            size = x.shape[1]
-            x = tf.keras.layers.Concatenate()([x,intensity_input])
-            x = tf.keras.layers.Dense(size)(x)
-            x = tf.keras.layers.Reshape((1,1,size))(x)
+        # if use_intensity:
+        #     intensity_input = tf.keras.layers.Input(shape=(1,))
+        #     inputs = [image_input, intensity_input]
+        #     x = tf.keras.layers.Flatten()(x)
+        #     size = x.shape[1]
+        #     x = tf.keras.layers.Concatenate()([x,intensity_input])
+        #     x = tf.keras.layers.Dense(size)(x)
+        #     x = tf.keras.layers.Reshape((1,1,size))(x)
         ##############################################
 
         ############ Add Dense Layer - TEST ##########
