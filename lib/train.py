@@ -161,10 +161,11 @@ class Trainer:
 
             # Phase 5: Clear2Clear
             # Pass a clear image for c2f generator with intensity = 0 and expect to have the same image
-            no_intensity = tf.zeros_like(clear_intensity)
-            if self.normalized_input:
-                no_intensity = no_intensity - 1.0
-            fake_clear2clear = self.generator_clear2fog((real_clear, no_intensity), training=True)
+            # TODO : Uncomment
+            # no_intensity = tf.zeros_like(clear_intensity)
+            # if self.normalized_input:
+            #     no_intensity = no_intensity - 1.0
+            # fake_clear2clear = self.generator_clear2fog((real_clear, no_intensity), training=True)
 
             # calculate the loss
             gen_clear2fog_loss = self.generator_loss(disc_fake_fog)
@@ -175,8 +176,8 @@ class Trainer:
 
             # Total generator loss = adversarial loss + cycle loss
             total_gen_clear2fog_loss = gen_clear2fog_loss + total_cycle_loss + \
-                                       self.identity_loss(real_fog, same_fog) + \
-                                       self.identity_loss(real_clear, fake_clear2clear)
+                                       self.identity_loss(real_fog, same_fog)
+                                       # self.identity_loss(real_clear, fake_clear2clear) # TODO : Uncomment
             total_gen_fog2clear_loss = gen_fog2clear_loss + \
                                        total_cycle_loss + \
                                        self.identity_loss(real_clear, same_clear)
