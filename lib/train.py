@@ -166,7 +166,10 @@ class Trainer:
                 no_intensity = no_intensity - 1.0
             fake_clear2clear = self.generator_clear2fog((real_clear, no_intensity), training=True)
 
-            # TODO: if intensity = 1 => full white image
+            # Phase 5: Clear2White
+            full_intensity = tf.ones_like(clear_intensity)
+            fake_clear2white = self.generator_clear2fog((real_clear, full_intensity))
+            white = tf.ones_like(real_clear)
 
             # calculate the loss
             gen_clear2fog_loss = self.generator_loss(disc_fake_fog)
@@ -178,7 +181,8 @@ class Trainer:
             # Total generator loss = adversarial loss + cycle loss
             total_gen_clear2fog_loss = gen_clear2fog_loss + total_cycle_loss + \
                                        self.identity_loss(real_fog, same_fog) + \
-                                       self.identity_loss(real_clear, fake_clear2clear)
+                                       self.identity_loss(real_clear, fake_clear2clear) + \
+                                       self.identity_loss(white, fake_clear2white)
             total_gen_fog2clear_loss = gen_fog2clear_loss + \
                                        total_cycle_loss + \
                                        self.identity_loss(real_clear, same_clear)
