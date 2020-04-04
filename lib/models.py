@@ -86,10 +86,10 @@ class ModelsBuilder:
         image_input = tf.keras.layers.Input(shape=[self.image_height, self.image_height, self.output_channels])
         inputs = image_input
         x = image_input
-        # if use_intensity:
-        #     intensity_input = tf.keras.layers.Input(shape=(1,))
-        #     inputs = [image_input, intensity_input]
-        #     x = self.concatenate_image_and_intensity(x, intensity_input)
+        if use_intensity:
+            intensity_input = tf.keras.layers.Input(shape=(1,))
+            inputs = [image_input, intensity_input]
+            x = self.concatenate_image_and_intensity(x, intensity_input)
 
         down_stack = [
             self.downsample(64, 4, norm_type=norm_type, apply_norm=False),  # (bs, 128, 128, 64)
@@ -128,13 +128,13 @@ class ModelsBuilder:
 
         # TODO : Delete or keep
         ########### Make a 1x1x512 vector of intensity and merge with downsample ########
-        if use_intensity:
-            intensity_input = tf.keras.layers.Input(shape=(1,))
-            inputs = [image_input, intensity_input]
-            intensity = tf.keras.layers.RepeatVector(512)(intensity_input)
-            intensity = tf.keras.layers.Reshape((1, 1, 512))(intensity)
-            x = tf.keras.layers.Concatenate(axis=-1)([x, intensity])
-            x = self.downsample(512, 1, norm_type=norm_type)(x)
+        # if use_intensity:
+        #     intensity_input = tf.keras.layers.Input(shape=(1,))
+        #     inputs = [image_input, intensity_input]
+        #     intensity = tf.keras.layers.RepeatVector(512)(intensity_input)
+        #     intensity = tf.keras.layers.Reshape((1, 1, 512))(intensity)
+        #     x = tf.keras.layers.Concatenate(axis=-1)([x, intensity])
+        #     x = self.downsample(512, 1, norm_type=norm_type)(x)
         #################################################################################
 
         ############ Add Dense Layer - TEST ##########
