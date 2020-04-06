@@ -98,7 +98,10 @@ class Trainer:
         if self.normalized_input:
             intensity = intensity * 0.5 + 0.5
         t = 1 - intensity
-        expected_image = clear_image * t + (1 - t)
+        expected_image = tf.zeros_like(clear_image)
+        for i in range(clear_image.shape[0]):
+            expected_image[i] = clear_image[i] * t[i] + (1 - t[i])
+
         return self.identity_loss(expected_image, generated_image)
 
     def get_models_and_paths(self):
