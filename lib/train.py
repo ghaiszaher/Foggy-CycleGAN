@@ -94,6 +94,13 @@ class Trainer:
         loss = tf.reduce_mean(tf.abs(real_image - same_image))
         return self.LAMBDA * 0.5 * loss
 
+    def transmission_map_loss(self, clear_image, generated_image, intensity):
+        if self.normalized_input:
+            intensity = intensity * 0.5 + 0.5
+        t = 1 - intensity
+        expected_image = clear_image * t + (1 - t)
+        return self.identity_loss(expected_image, generated_image)
+
     def get_models_and_paths(self):
         import os
         generator_clear2fog_weights_path = os.path.join(self.weights_path, 'generator_clear2fog.h5')
@@ -145,7 +152,7 @@ class Trainer:
             fake_clear = self.generator_fog2clear((real_fog, fog_intensity), training=True)
             cycled_fog = self.generator_clear2fog((fake_clear, fog_intensity), training=True)
 
-            # Phase 2: Indentity Loss
+            # Phase 2: Identity Loss
             # same_x and same_y are used for identity loss.
             same_clear = self.generator_fog2clear((real_clear, clear_intensity), training=True)
             same_fog = self.generator_clear2fog((real_fog, fog_intensity), training=True)
@@ -182,7 +189,10 @@ class Trainer:
             total_gen_clear2fog_loss = gen_clear2fog_loss + total_cycle_loss + \
                                        self.identity_loss(real_fog, same_fog) + \
                                        self.identity_loss(real_clear, fake_clear2clear) + \
-                                       self.identity_loss(white, fake_clear2white)
+                                       self.identity_loss(white, fake_clear2white) + \
+                                       self.transmission_map_loss(real_clear, fake_fog,
+                                                                  clear_intensity)  # TODO: Check if performing well
+
             total_gen_fog2clear_loss = gen_fog2clear_loss + \
                                        total_cycle_loss + \
                                        self.identity_loss(real_clear, same_clear)
