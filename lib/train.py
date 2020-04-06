@@ -98,9 +98,10 @@ class Trainer:
         if self.normalized_input:
             intensity = intensity * 0.5 + 0.5
         t = 1 - intensity
-        expected_image = tf.zeros_like(clear_image)
+        expected_image = []
         for i in range(clear_image.shape[0]):
-            expected_image[i] = clear_image[i] * t[i] + (1 - t[i])
+            expected_image.append(clear_image[i] * t[i] + (1 - t[i]))
+        expected_image = tf.convert_to_tensor(expected_image)
 
         return self.identity_loss(expected_image, generated_image)
 
