@@ -8,5 +8,6 @@ weights/
 image_logs/
 trainer_config.json
 dataset/
+intensity/
 
 !.idea/dictionaries/
