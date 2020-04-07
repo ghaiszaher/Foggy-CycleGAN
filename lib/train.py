@@ -73,7 +73,7 @@ class Trainer:
             self.image_log_path = config['image_log_path']
 
         print("Trainer config loaded from {}".format(self.config_path))
-        print("Trainer config values: ", config)
+        print("Trainer config values: ")
         for key in config:
             print("\t{}: {}".format(key, config[key]))
 
