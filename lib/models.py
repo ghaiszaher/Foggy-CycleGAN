@@ -82,7 +82,7 @@ class ModelsBuilder:
 
     # TODO: Check which is better, instancenorm or batchnorm
     def build_generator(self, use_transmission_map=False, use_gauss_filter=True, norm_type='instancenorm',
-                        use_intensity=True):
+                        use_intensity=True, kernel_size=4):
         image_input = tf.keras.layers.Input(shape=[self.image_height, self.image_height, self.output_channels])
         inputs = image_input
         x = image_input
@@ -92,28 +92,28 @@ class ModelsBuilder:
             x = self.concatenate_image_and_intensity(x, intensity_input)
 
         down_stack = [
-            self.downsample(64, 4, norm_type=norm_type, apply_norm=False),  # (bs, 128, 128, 64)
-            self.downsample(128, 4, norm_type=norm_type),  # (bs, 64, 64, 128)
-            self.downsample(256, 4, norm_type=norm_type),  # (bs, 32, 32, 256)
-            self.downsample(512, 4, norm_type=norm_type),  # (bs, 16, 16, 512)
-            self.downsample(512, 4, norm_type=norm_type),  # (bs, 8, 8, 512)
-            self.downsample(512, 4, norm_type=norm_type),  # (bs, 4, 4, 512)
-            self.downsample(512, 4, norm_type=norm_type),  # (bs, 2, 2, 512)
-            self.downsample(512, 4, norm_type=norm_type),  # (bs, 1, 1, 512)
+            self.downsample(64, kernel_size, norm_type=norm_type, apply_norm=False),  # (bs, 128, 128, 64)
+            self.downsample(128, kernel_size, norm_type=norm_type),  # (bs, 64, 64, 128)
+            self.downsample(256, kernel_size, norm_type=norm_type),  # (bs, 32, 32, 256)
+            self.downsample(512, kernel_size, norm_type=norm_type),  # (bs, 16, 16, 512)
+            self.downsample(512, kernel_size, norm_type=norm_type),  # (bs, 8, 8, 512)
+            self.downsample(512, kernel_size, norm_type=norm_type),  # (bs, 4, 4, 512)
+            self.downsample(512, kernel_size, norm_type=norm_type),  # (bs, 2, 2, 512)
+            self.downsample(512, kernel_size, norm_type=norm_type),  # (bs, 1, 1, 512)
         ]
 
         up_stack = [
-            self.upsample(512, 4, norm_type=norm_type, apply_dropout=True),  # (bs, 2, 2, 1024)
-            self.upsample(512, 4, norm_type=norm_type, apply_dropout=True),  # (bs, 4, 4, 1024)
-            self.upsample(512, 4, norm_type=norm_type, apply_dropout=True),  # (bs, 8, 8, 1024)
-            self.upsample(512, 4, norm_type=norm_type),  # (bs, 16, 16, 1024)
-            self.upsample(256, 4, norm_type=norm_type),  # (bs, 32, 32, 512)
-            self.upsample(128, 4, norm_type=norm_type),  # (bs, 64, 64, 256)
-            self.upsample(64, 4, norm_type=norm_type),  # (bs, 128, 128, 128)
+            self.upsample(512, kernel_size, norm_type=norm_type, apply_dropout=True),  # (bs, 2, 2, 1024)
+            self.upsample(512, kernel_size, norm_type=norm_type, apply_dropout=True),  # (bs, 4, 4, 1024)
+            self.upsample(512, kernel_size, norm_type=norm_type, apply_dropout=True),  # (bs, 8, 8, 1024)
+            self.upsample(512, kernel_size, norm_type=norm_type),  # (bs, 16, 16, 1024)
+            self.upsample(256, kernel_size, norm_type=norm_type),  # (bs, 32, 32, 512)
+            self.upsample(128, kernel_size, norm_type=norm_type),  # (bs, 64, 64, 256)
+            self.upsample(64, kernel_size, norm_type=norm_type),  # (bs, 128, 128, 128)
         ]
 
         initializer = tf.random_normal_initializer(0., 0.02)
-        last = tf.keras.layers.Conv2DTranspose(1 if use_transmission_map else self.output_channels, 4,
+        last = tf.keras.layers.Conv2DTranspose(1 if use_transmission_map else self.output_channels, kernel_size,
                                                strides=2,
                                                padding='same',
                                                name='transmission_layer' if use_transmission_map else 'output_layer',
@@ -177,7 +177,7 @@ class ModelsBuilder:
 
         return tf.keras.Model(inputs=inputs, outputs=x)
 
-    def build_discriminator(self, norm_type='instancenorm', use_intensity=True):
+    def build_discriminator(self, norm_type='instancenorm', use_intensity=True, kernel_size=4):
         initializer = tf.random_normal_initializer(0., 0.02)
         inp = tf.keras.layers.Input(shape=[256, 256, 3], name='input_image')
         inputs = inp
@@ -187,12 +187,12 @@ class ModelsBuilder:
             inputs = [inp, intensity_input]
             x = self.concatenate_image_and_intensity(x, intensity_input)
 
-        down1 = self.downsample(64, 4, norm_type=norm_type, apply_norm=False)(x)  # (bs, 128, 128, 64)
-        down2 = self.downsample(128, 4, norm_type=norm_type)(down1)  # (bs, 64, 64, 128)
-        down3 = self.downsample(256, 4, norm_type=norm_type)(down2)  # (bs, 32, 32, 256)
+        down1 = self.downsample(64, kernel_size, norm_type=norm_type, apply_norm=False)(x)  # (bs, 128, 128, 64)
+        down2 = self.downsample(128, kernel_size, norm_type=norm_type)(down1)  # (bs, 64, 64, 128)
+        down3 = self.downsample(256, kernel_size, norm_type=norm_type)(down2)  # (bs, 32, 32, 256)
 
         zero_pad1 = tf.keras.layers.ZeroPadding2D()(down3)  # (bs, 34, 34, 256)
-        conv = tf.keras.layers.Conv2D(512, 4, strides=1,
+        conv = tf.keras.layers.Conv2D(512, kernel_size, strides=1,
                                       kernel_initializer=initializer,
                                       use_bias=False)(zero_pad1)  # (bs, 31, 31, 512)
         if norm_type.lower() == 'instancenorm':
@@ -201,7 +201,7 @@ class ModelsBuilder:
             norm1 = tf.keras.layers.BatchNormalization()(conv)
         leaky_relu = tf.keras.layers.LeakyReLU()(norm1)
         zero_pad2 = tf.keras.layers.ZeroPadding2D()(leaky_relu)  # (bs, 33, 33, 512)
-        last = tf.keras.layers.Conv2D(1, 4, strides=1,
+        last = tf.keras.layers.Conv2D(1, kernel_size, strides=1,
                                       kernel_initializer=initializer)(zero_pad2)  # (bs, 30, 30, 1)
         return tf.keras.Model(inputs=inputs, outputs=last)
         # TODO: should add activation to last layer?
