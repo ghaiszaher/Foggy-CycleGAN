@@ -35,12 +35,12 @@ class ModelsBuilder:
         self.image_width = image_width
         self.normalized_input = normalized_input
 
-    def downsample(self, filters, size, norm_type='instancenorm', apply_norm=True,strides=2):
+    def downsample(self, filters, size, norm_type='instancenorm', apply_norm=True):
         initializer = tf.random_normal_initializer(0., 0.02)
 
         result = tf.keras.Sequential()
         result.add(
-            tf.keras.layers.Conv2D(filters, size, strides=strides, padding='same',
+            tf.keras.layers.Conv2D(filters, size, strides=2, padding='same',
                                    kernel_initializer=initializer, use_bias=False))
 
         if apply_norm:
@@ -53,12 +53,12 @@ class ModelsBuilder:
 
         return result
 
-    def upsample(self, filters, size, norm_type='instancenorm', apply_dropout=False, strides=2):
+    def upsample(self, filters, size, norm_type='instancenorm', apply_dropout=False):
         initializer = tf.random_normal_initializer(0., 0.02)
 
         result = tf.keras.Sequential()
         result.add(
-            tf.keras.layers.Conv2DTranspose(filters, size, strides=strides,
+            tf.keras.layers.Conv2DTranspose(filters, size, strides=2,
                                             padding='same',
                                             kernel_initializer=initializer,
                                             use_bias=False))
@@ -103,17 +103,17 @@ class ModelsBuilder:
         ]
 
         up_stack = [
-            self.upsample(512, 2, norm_type=norm_type, apply_dropout=True),  # (bs, 2, 2, 1024)
-            self.upsample(512, 2, norm_type=norm_type, apply_dropout=True),  # (bs, 4, 4, 1024)
-            self.upsample(512, 2, norm_type=norm_type, apply_dropout=True),  # (bs, 8, 8, 1024)
-            self.upsample(512, 2, norm_type=norm_type),  # (bs, 16, 16, 1024)
-            self.upsample(256, 2, norm_type=norm_type),  # (bs, 32, 32, 512)
-            self.upsample(128, 2, norm_type=norm_type),  # (bs, 64, 64, 256)
-            self.upsample(64, 2, norm_type=norm_type),  # (bs, 128, 128, 128)
+            self.upsample(512, 4, norm_type=norm_type, apply_dropout=True),  # (bs, 2, 2, 1024)
+            self.upsample(512, 4, norm_type=norm_type, apply_dropout=True),  # (bs, 4, 4, 1024)
+            self.upsample(512, 4, norm_type=norm_type, apply_dropout=True),  # (bs, 8, 8, 1024)
+            self.upsample(512, 4, norm_type=norm_type),  # (bs, 16, 16, 1024)
+            self.upsample(256, 4, norm_type=norm_type),  # (bs, 32, 32, 512)
+            self.upsample(128, 4, norm_type=norm_type),  # (bs, 64, 64, 256)
+            self.upsample(64, 4, norm_type=norm_type),  # (bs, 128, 128, 128)
         ]
 
         initializer = tf.random_normal_initializer(0., 0.02)
-        last = tf.keras.layers.Conv2DTranspose(1 if use_transmission_map else self.output_channels, 2,
+        last = tf.keras.layers.Conv2DTranspose(1 if use_transmission_map else self.output_channels, 4,
                                                strides=2,
                                                padding='same',
                                                name='transmission_layer' if use_transmission_map else 'output_layer',
