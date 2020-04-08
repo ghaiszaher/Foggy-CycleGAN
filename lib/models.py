@@ -125,12 +125,12 @@ class ModelsBuilder:
         if use_resize_conv:
             up_stack = [
                 self.upsample(512, kernel_size, norm_type=norm_type, apply_dropout=True),  # (bs, 2, 2, 1024)
-                self.resize_conv(512, kernel_size, [4, 4], strides=1, norm_type=norm_type),  # (bs, 4, 4, 1024)
-                self.resize_conv(512, kernel_size, [8, 8], strides=1, norm_type=norm_type),  # (bs, 8, 8, 1024)
-                self.resize_conv(512, kernel_size, [16, 16], strides=1, norm_type=norm_type),  # (bs, 16, 16, 1024)
-                self.resize_conv(256, kernel_size, [32, 32], strides=1, norm_type=norm_type),  # (bs, 32, 32, 512)
-                self.resize_conv(128, kernel_size, [64, 64], strides=1, norm_type=norm_type),  # (bs, 64, 64, 256)
-                self.resize_conv(64, kernel_size, [128, 128], strides=1, norm_type=norm_type),  # (bs, 128, 128, 128)
+                self.resize_conv(512, kernel_size, [8, 8], strides=2, norm_type=norm_type),  # (bs, 4, 4, 1024)
+                self.resize_conv(512, kernel_size, [16, 16], strides=2, norm_type=norm_type),  # (bs, 8, 8, 1024)
+                self.resize_conv(512, kernel_size, [32, 32], strides=2, norm_type=norm_type),  # (bs, 16, 16, 1024)
+                self.resize_conv(256, kernel_size, [64, 64], strides=2, norm_type=norm_type),  # (bs, 32, 32, 512)
+                self.resize_conv(128, kernel_size, [128, 128], strides=2, norm_type=norm_type),  # (bs, 64, 64, 256)
+                self.resize_conv(64, kernel_size, [256, 256], strides=2, norm_type=norm_type),  # (bs, 128, 128, 128)
             ]
         else:
             up_stack = [
@@ -191,6 +191,9 @@ class ModelsBuilder:
         for up, skip in zip(up_stack, skips):
             x = up(x)
             x = tf.keras.layers.Concatenate()([x, skip])
+        if use_resize_conv:
+            x = tf.keras.layers.Lambda(
+                lambda im: tf.image.resize(im, [512, 512], method=tf.image.ResizeMethod.NEAREST_NEIGHBOR))(x)
         x = last(x)
         if use_transmission_map:
             transmission = x
