@@ -75,23 +75,24 @@ class ModelsBuilder:
 
         return result
 
-    def resize_conv(self, filters, kernel_size, resize_to, strides=2, norm_type='instancenorm', apply_norm=True):
+    def resize_conv(self, filters, kernel_size, strides=2, norm_type='instancenorm', apply_dropout=False):
         initializer = tf.random_normal_initializer(0., 0.02)
 
         result = tf.keras.Sequential()
-        result.add(tf.keras.layers.UpSampling2D(2))
+        result.add(tf.keras.layers.UpSampling2D(2, interpolation='bilinear'))
         # result.add(tf.keras.layers.Lambda(
         #     lambda x: tf.image.resize(x, resize_to, method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)))
         result.add(
             tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding='same',
                                    kernel_initializer=initializer, use_bias=False))
 
-        if apply_norm:
-            if norm_type.lower() == 'batchnorm':
-                result.add(tf.keras.layers.BatchNormalization())
-            elif norm_type.lower() == 'instancenorm':
-                result.add(InstanceNormalization())
+        if norm_type.lower() == 'batchnorm':
+            result.add(tf.keras.layers.BatchNormalization())
+        elif norm_type.lower() == 'instancenorm':
+            result.add(InstanceNormalization())
 
+        if apply_dropout:
+            result.add(tf.keras.layers.Dropout(0.5))
         result.add(tf.keras.layers.LeakyReLU())
 
         return result
@@ -129,9 +130,9 @@ class ModelsBuilder:
                 self.upsample(512, kernel_size, norm_type=norm_type, apply_dropout=True),  # (bs, 4, 4, 1024)
                 self.upsample(512, kernel_size, norm_type=norm_type, apply_dropout=True),  # (bs, 8, 8, 1024)
                 self.upsample(512, kernel_size, norm_type=norm_type),  # (bs, 16, 16, 1024)
-                self.resize_conv(256, kernel_size, [32, 32], strides=1, norm_type=norm_type),  # (bs, 32, 32, 512)
-                self.resize_conv(128, kernel_size, [64, 64], strides=1, norm_type=norm_type),  # (bs, 64, 64, 256)
-                self.resize_conv(64, kernel_size, [128, 128], strides=1, norm_type=norm_type),  # (bs, 128, 128, 128)
+                self.resize_conv(256, kernel_size, strides=1, norm_type=norm_type),  # (bs, 32, 32, 512)
+                self.resize_conv(128, kernel_size, strides=1, norm_type=norm_type),  # (bs, 64, 64, 256)
+                self.resize_conv(64, kernel_size, strides=1, norm_type=norm_type),  # (bs, 128, 128, 128)
             ]
         else:
             up_stack = [
