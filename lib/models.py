@@ -144,12 +144,20 @@ class ModelsBuilder:
             ]
 
         initializer = tf.random_normal_initializer(0., 0.02)
-        last = tf.keras.layers.Conv2DTranspose(1 if use_transmission_map else self.output_channels, kernel_size,
-                                               strides=2,
-                                               padding='same',
-                                               name='transmission_layer' if use_transmission_map else 'output_layer',
-                                               kernel_initializer=initializer,
-                                               activation='tanh' if self.normalized_input else 'sigmoid')  # (bs, 256, 256, 1)
+        if use_resize_conv:
+            last = tf.keras.layers.Conv2D(1 if use_transmission_map else self.output_channels, kernel_size,
+                                          strides=2,
+                                          padding='same',
+                                          name='transmission_layer' if use_transmission_map else 'output_layer',
+                                          kernel_initializer=initializer,
+                                          activation='tanh' if self.normalized_input else 'sigmoid')  # (bs, 256, 256, 1)
+        else:
+            last = tf.keras.layers.Conv2DTranspose(1 if use_transmission_map else self.output_channels, kernel_size,
+                                                   strides=2,
+                                                   padding='same',
+                                                   name='transmission_layer' if use_transmission_map else 'output_layer',
+                                                   kernel_initializer=initializer,
+                                                   activation='tanh' if self.normalized_input else 'sigmoid')  # (bs, 256, 256, 1)
         # Downsampling through the model
         skips = []
         for down in down_stack:
