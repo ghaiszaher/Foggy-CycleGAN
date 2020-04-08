@@ -79,8 +79,9 @@ class ModelsBuilder:
         initializer = tf.random_normal_initializer(0., 0.02)
 
         result = tf.keras.Sequential()
-        result.add(tf.keras.layers.Lambda(
-            lambda x: tf.image.resize(x, resize_to, method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)))
+        result.add(tf.keras.layers.UpSampling2D(2))
+        # result.add(tf.keras.layers.Lambda(
+        #     lambda x: tf.image.resize(x, resize_to, method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)))
         result.add(
             tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding='same',
                                    kernel_initializer=initializer, use_bias=False))
@@ -200,6 +201,7 @@ class ModelsBuilder:
             x = up(x)
             x = tf.keras.layers.Concatenate()([x, skip])
         if use_resize_conv:
+            x = tf.keras.layers.UpSampling2D(2)(x)
             x = tf.keras.layers.Lambda(
                 lambda im: tf.image.resize(im, [256, 256], method=tf.image.ResizeMethod.NEAREST_NEIGHBOR))(x)
         x = last(x)
