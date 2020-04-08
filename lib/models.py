@@ -75,6 +75,26 @@ class ModelsBuilder:
 
         return result
 
+    def resize_conv(self, filters, kernel_size, resize_to, strides=2, norm_type='instancenorm', apply_norm=True):
+        initializer = tf.random_normal_initializer(0., 0.02)
+
+        result = tf.keras.Sequential()
+        result.add(tf.keras.layers.Lambda(
+            lambda x: tf.image.resize(x, resize_to, method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)))
+        result.add(
+            tf.keras.layers.Conv2D(filters, kernel_size, strides=strides, padding='same',
+                                   kernel_initializer=initializer, use_bias=False))
+
+        if apply_norm:
+            if norm_type.lower() == 'batchnorm':
+                result.add(tf.keras.layers.BatchNormalization())
+            elif norm_type.lower() == 'instancenorm':
+                result.add(InstanceNormalization())
+
+        result.add(tf.keras.layers.LeakyReLU())
+
+        return result
+
     def concatenate_image_and_intensity(self, image_input, intensity_input):
         intensity = tf.keras.layers.RepeatVector(self.image_height * self.image_height)(intensity_input)
         intensity = tf.keras.layers.Reshape((self.image_height, self.image_height, 1))(intensity)
@@ -82,7 +102,7 @@ class ModelsBuilder:
 
     # TODO: Check which is better, instancenorm or batchnorm
     def build_generator(self, use_transmission_map=False, use_gauss_filter=True, norm_type='instancenorm',
-                        use_intensity=True, kernel_size=4):
+                        use_intensity=True, kernel_size=4, use_resize_conv=False):
         image_input = tf.keras.layers.Input(shape=[self.image_height, self.image_height, self.output_channels])
         inputs = image_input
         x = image_input
@@ -102,15 +122,26 @@ class ModelsBuilder:
             self.downsample(512, kernel_size, norm_type=norm_type),  # (bs, 1, 1, 512)
         ]
 
-        up_stack = [
-            self.upsample(512, kernel_size, norm_type=norm_type, apply_dropout=True),  # (bs, 2, 2, 1024)
-            self.upsample(512, kernel_size, norm_type=norm_type, apply_dropout=True),  # (bs, 4, 4, 1024)
-            self.upsample(512, kernel_size, norm_type=norm_type, apply_dropout=True),  # (bs, 8, 8, 1024)
-            self.upsample(512, kernel_size, norm_type=norm_type),  # (bs, 16, 16, 1024)
-            self.upsample(256, kernel_size, norm_type=norm_type),  # (bs, 32, 32, 512)
-            self.upsample(128, kernel_size, norm_type=norm_type),  # (bs, 64, 64, 256)
-            self.upsample(64, kernel_size, norm_type=norm_type),  # (bs, 128, 128, 128)
-        ]
+        if use_resize_conv:
+            up_stack = [
+                self.upsample(512, kernel_size, norm_type=norm_type, apply_dropout=True),  # (bs, 2, 2, 1024)
+                self.resize_conv(512, kernel_size, [4, 4], strides=1, norm_type=norm_type),  # (bs, 4, 4, 1024)
+                self.resize_conv(512, kernel_size, [8, 8], strides=1, norm_type=norm_type),  # (bs, 8, 8, 1024)
+                self.resize_conv(512, kernel_size, [16, 16], strides=1, norm_type=norm_type),  # (bs, 16, 16, 1024)
+                self.resize_conv(256, kernel_size, [32, 32], strides=1, norm_type=norm_type),  # (bs, 32, 32, 512)
+                self.resize_conv(128, kernel_size, [64, 64], strides=1, norm_type=norm_type),  # (bs, 64, 64, 256)
+                self.resize_conv(64, kernel_size, [128, 128], strides=1, norm_type=norm_type),  # (bs, 128, 128, 128)
+            ]
+        else:
+            up_stack = [
+                self.upsample(512, kernel_size, norm_type=norm_type, apply_dropout=True),  # (bs, 2, 2, 1024)
+                self.upsample(512, kernel_size, norm_type=norm_type, apply_dropout=True),  # (bs, 4, 4, 1024)
+                self.upsample(512, kernel_size, norm_type=norm_type, apply_dropout=True),  # (bs, 8, 8, 1024)
+                self.upsample(512, kernel_size, norm_type=norm_type),  # (bs, 16, 16, 1024)
+                self.upsample(256, kernel_size, norm_type=norm_type),  # (bs, 32, 32, 512)
+                self.upsample(128, kernel_size, norm_type=norm_type),  # (bs, 64, 64, 256)
+                self.upsample(64, kernel_size, norm_type=norm_type),  # (bs, 128, 128, 128)
+            ]
 
         initializer = tf.random_normal_initializer(0., 0.02)
         last = tf.keras.layers.Conv2DTranspose(1 if use_transmission_map else self.output_channels, kernel_size,
