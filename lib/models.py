@@ -128,7 +128,7 @@ class ModelsBuilder:
             up_stack = [
                 self.upsample(512, kernel_size, norm_type=norm_type, apply_dropout=True),  # (bs, 2, 2, 1024)
                 self.upsample(512, kernel_size, norm_type=norm_type, apply_dropout=True),  # (bs, 4, 4, 1024)
-                self.resize_conv(512, kernel_size, norm_type=norm_type, apply_dropout=True),  # (bs, 8, 8, 1024)
+                self.upsample(512, kernel_size, norm_type=norm_type, apply_dropout=True),  # (bs, 8, 8, 1024)
                 self.resize_conv(512, kernel_size, norm_type=norm_type),  # (bs, 16, 16, 1024)
                 self.resize_conv(256, kernel_size, norm_type=norm_type),  # (bs, 32, 32, 512)
                 self.resize_conv(128, kernel_size, norm_type=norm_type),  # (bs, 64, 64, 256)
