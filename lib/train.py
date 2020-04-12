@@ -193,9 +193,9 @@ class Trainer:
             total_gen_clear2fog_loss = gen_clear2fog_loss + total_cycle_loss + \
                                        self.identity_loss(real_fog, same_fog) + \
                                        self.identity_loss(real_clear, fake_clear2clear) + \
-                                       self.identity_loss(white, fake_clear2white) + \
-                                       self.transmission_map_loss(real_clear, fake_fog,
-                                                                  clear_intensity)  # TODO: Check if performing well
+                                       self.identity_loss(white, fake_clear2white) #+ \
+                                       # self.transmission_map_loss(real_clear, fake_fog,
+                                       #                            clear_intensity)  # TODO: Check if performing well
 
             total_gen_fog2clear_loss = gen_fog2clear_loss + \
                                        total_cycle_loss + \
