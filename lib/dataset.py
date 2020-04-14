@@ -164,15 +164,28 @@ class DatasetInitializer:
     def annotations_to_dataframe(self, path):
         import numpy as np
         images_df = None
-        files1 = tf.io.matching_files(os.path.join(path, "**/Annotations*.csv")).numpy()
-        files2 = tf.io.matching_files(os.path.join(path, "Annotations*.csv")).numpy()
-        files = np.concatenate((files1, files2))
-        for s in files:
+        annotation_files = None
+        # Because tf.io.matching_files doesn't walk recursively on linux, had to do it manually
+        for d in tf.io.gfile.walk(path):
+            files = tf.io.matching_files(os.path.join(d[0], "Annotations*.csv")).numpy()
+            if annotation_files is not None:
+                annotation_files = np.concatenate((annotation_files, files))
+            else:
+                annotation_files = files
+
+        if annotation_files is None:
+            raise Exception("No annotation files found!")
+
+        for s in annotation_files:
             df = self.process_annotations_file(s.decode())
             if images_df is None:
                 images_df = df
             else:
                 images_df = images_df.append(df)
+
+        if images_df is None:
+            raise Exception("No images found!")
+
         return images_df
 
     def fill_train_test_dataframes(self, test_split=0.3, random_seed=None):
