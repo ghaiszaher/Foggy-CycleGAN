@@ -106,7 +106,7 @@ class ModelsBuilder:
     def build_generator(self, use_transmission_map=False, use_gauss_filter=True, norm_type='instancenorm',
                         use_intensity=True, kernel_size=4,
                         use_resize_conv=False,
-                        add_conv_layer_last=False):
+                        last_kernel_multiplier=1):
         image_input = tf.keras.layers.Input(shape=[self.image_height, self.image_height, self.output_channels])
         inputs = image_input
         x = image_input
@@ -156,12 +156,13 @@ class ModelsBuilder:
         #                                   kernel_initializer=initializer,
         #                                   activation='tanh' if self.normalized_input else 'sigmoid')  # (bs, 256, 256, 1)
         # else:
-        last = tf.keras.layers.Conv2DTranspose(1 if use_transmission_map else self.output_channels, kernel_size,
+        last = tf.keras.layers.Conv2DTranspose(1 if use_transmission_map else self.output_channels,
+                                               kernel_size * last_kernel_multiplier,
                                                strides=2,
                                                padding='same',
                                                name='transmission_layer' if use_transmission_map else 'output_layer',
                                                kernel_initializer=initializer,
-                                               activation=None if add_conv_layer_last else 'tanh' if self.normalized_input else 'sigmoid')  # (bs, 256, 256, 1)
+                                               activation='tanh' if self.normalized_input else 'sigmoid')  # (bs, 256, 256, 1)
         # Downsampling through the model
         skips = []
         for down in down_stack:
@@ -178,11 +179,6 @@ class ModelsBuilder:
         #     x = tf.keras.layers.Lambda(
         #         lambda im: tf.image.resize(im, [256, 256], method=tf.image.ResizeMethod.NEAREST_NEIGHBOR))(x)
         x = last(x)
-        if add_conv_layer_last:
-            x = tf.keras.layers.Conv2D(1 if use_transmission_map else self.output_channels, kernel_size, strides=1,
-                                       padding='same',
-                                       activation='tanh' if self.normalized_input else 'sigmoid',
-                                       kernel_initializer=initializer, use_bias=False)(x)
         if use_transmission_map:
             transmission = x
             if self.normalized_input:
