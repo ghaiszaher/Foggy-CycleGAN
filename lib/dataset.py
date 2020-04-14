@@ -2,7 +2,6 @@ import tensorflow as tf
 import pandas as pd
 import os
 from .tools import df_length
-import numpy as np
 
 COLUMN_PATH = 'path'
 COLUMN_INTENSITY = 'intensity'
@@ -11,6 +10,7 @@ INTENSITY_VALUE_SAMPLE = 'sample'
 
 
 def split_dataframe(df, smaller_split_ratio, random_seed=None):
+    import numpy as np
     if random_seed:
         np.random.seed(random_seed)
     random_indices = np.random.permutation(df_length(df))
