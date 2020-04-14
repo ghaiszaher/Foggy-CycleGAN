@@ -207,7 +207,7 @@ class DatasetInitializer:
         print("Found {} sample clear image(s) and {} sample fog image(s)".format(df_length(self.sample_clear_df),
                                                                                  df_length(self.sample_fog_df)))
 
-    def prepare_dataset(self, batch_size,
+    def prepare_dataset(self, batch_size, buffer_size=1000,
                         test_split=0.3,
                         autotune=tf.data.experimental.AUTOTUNE,
                         return_sample=True, sample_batch_size=1,
@@ -223,8 +223,10 @@ class DatasetInitializer:
         sample_fog_gen = image_names_generator(self.sample_fog_df)
 
         output_types = (tf.string, tf.float32)
-        train_clear = tf.data.Dataset.from_generator(train_clear_gen, output_types).map(self.preprocess_image_path)
-        train_fog = tf.data.Dataset.from_generator(train_fog_gen, output_types).map(self.preprocess_image_path)
+        train_clear = tf.data.Dataset.from_generator(train_clear_gen, output_types).map(
+            self.preprocess_image_path).shuffle(buffer_size)
+        train_fog = tf.data.Dataset.from_generator(train_fog_gen, output_types).map(
+            self.preprocess_image_path).shuffle(buffer_size)
         test_clear = tf.data.Dataset.from_generator(test_clear_gen, output_types).map(self.preprocess_image_path)
         test_fog = tf.data.Dataset.from_generator(test_fog_gen, output_types).map(self.preprocess_image_path)
         sample_clear = tf.data.Dataset.from_generator(sample_clear_gen, output_types).map(self.preprocess_image_path)
