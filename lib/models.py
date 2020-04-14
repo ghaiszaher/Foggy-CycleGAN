@@ -105,8 +105,7 @@ class ModelsBuilder:
     # TODO: Check which is better, instancenorm or batchnorm
     def build_generator(self, use_transmission_map=False, use_gauss_filter=True, norm_type='instancenorm',
                         use_intensity=True, kernel_size=4,
-                        use_resize_conv=False,
-                        last_kernel_multiplier=1):
+                        use_resize_conv=False):
         image_input = tf.keras.layers.Input(shape=[self.image_height, self.image_height, self.output_channels])
         inputs = image_input
         x = image_input
@@ -148,16 +147,9 @@ class ModelsBuilder:
             ]
 
         initializer = tf.random_normal_initializer(0., 0.02)
-        # if use_resize_conv:
-        #     last = tf.keras.layers.Conv2D(1 if use_transmission_map else self.output_channels, kernel_size,
-        #                                   strides=1,
-        #                                   padding='same',
-        #                                   name='transmission_layer' if use_transmission_map else 'output_layer',
-        #                                   kernel_initializer=initializer,
-        #                                   activation='tanh' if self.normalized_input else 'sigmoid')  # (bs, 256, 256, 1)
-        # else:
+
         last = tf.keras.layers.Conv2DTranspose(1 if use_transmission_map else self.output_channels,
-                                               kernel_size * last_kernel_multiplier,
+                                               kernel_size,
                                                strides=2,
                                                padding='same',
                                                name='transmission_layer' if use_transmission_map else 'output_layer',
@@ -174,10 +166,7 @@ class ModelsBuilder:
         for up, skip in zip(up_stack, skips):
             x = up(x)
             x = tf.keras.layers.Concatenate()([x, skip])
-        # if use_resize_conv:
-        #     x = tf.keras.layers.UpSampling2D(2)(x)
-        #     x = tf.keras.layers.Lambda(
-        #         lambda im: tf.image.resize(im, [256, 256], method=tf.image.ResizeMethod.NEAREST_NEIGHBOR))(x)
+
         x = last(x)
         if use_transmission_map:
             transmission = x
