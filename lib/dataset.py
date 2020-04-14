@@ -2,6 +2,7 @@ import tensorflow as tf
 import pandas as pd
 import os
 from .tools import df_length
+import numpy as np
 
 COLUMN_PATH = 'path'
 COLUMN_INTENSITY = 'intensity'
@@ -9,9 +10,13 @@ INTENSITY_VALUE_RANDOM = 'random'
 INTENSITY_VALUE_SAMPLE = 'sample'
 
 
-def split_dataframe(df, smaller_split_ratio):
+def split_dataframe(df, smaller_split_ratio, random_seed=None):
+    if random_seed:
+        np.random.seed(random_seed)
+    random_indices = np.random.permutation(df_length(df))
     split_size = int(df_length(df) * smaller_split_ratio)
-    return df.iloc[split_size:], df.iloc[:split_size]  # return larger_portion, smaller_portion
+    return df.iloc[random_indices[split_size:]], df.iloc[
+        random_indices[:split_size]]  # return larger_portion, smaller_portion
 
 
 def image_names_generator(df, intensity_value=None, random_range=(0.1, 0.95)):
@@ -170,12 +175,12 @@ class DatasetInitializer:
                 images_df = images_df.append(df)
         return images_df
 
-    def fill_train_test_dataframes(self, test_split=0.3):
+    def fill_train_test_dataframes(self, test_split=0.3, random_seed=None):
         images_df = self.annotations_to_dataframe(self.dataset_path)
         clear_df = images_df[images_df[COLUMN_INTENSITY] == 0]
         fog_df = images_df[images_df[COLUMN_INTENSITY] != 0]
-        self.train_clear_df, self.test_clear_df = split_dataframe(clear_df, test_split)
-        self.train_fog_df, self.test_fog_df = split_dataframe(fog_df, test_split)
+        self.train_clear_df, self.test_clear_df = split_dataframe(clear_df, test_split, random_seed)
+        self.train_fog_df, self.test_fog_df = split_dataframe(fog_df, test_split, random_seed)
         print("Found {} clear images and {} fog images".format(df_length(clear_df), df_length(fog_df)))
         print("Clear images split to {} train - {} test".format(df_length(self.train_clear_df),
                                                                 df_length(self.test_clear_df)))
@@ -189,11 +194,12 @@ class DatasetInitializer:
         print("Found {} sample clear image(s) and {} sample fog image(s)".format(df_length(self.sample_clear_df),
                                                                                  df_length(self.sample_fog_df)))
 
-    def prepare_dataset(self, buffer_size, batch_size,
+    def prepare_dataset(self, batch_size,
                         test_split=0.3,
                         autotune=tf.data.experimental.AUTOTUNE,
-                        return_sample=True, sample_batch_size=1):
-        self.fill_train_test_dataframes(test_split)
+                        return_sample=True, sample_batch_size=1,
+                        random_seed=None):
+        self.fill_train_test_dataframes(test_split, random_seed=random_seed)
         self.fill_sample_dataframes()
 
         train_clear_gen = image_names_generator(self.train_clear_df, intensity_value=INTENSITY_VALUE_RANDOM)
@@ -212,20 +218,16 @@ class DatasetInitializer:
         sample_fog = tf.data.Dataset.from_generator(sample_fog_gen, output_types).map(self.preprocess_image_path)
 
         train_clear = train_clear.map(
-            self.preprocess_image_train, num_parallel_calls=autotune).cache().shuffle(
-            buffer_size).batch(batch_size)
+            self.preprocess_image_train, num_parallel_calls=autotune).cache().batch(batch_size)
 
         train_fog = train_fog.map(
-            self.preprocess_image_train, num_parallel_calls=autotune).cache().shuffle(
-            buffer_size).batch(batch_size)
+            self.preprocess_image_train, num_parallel_calls=autotune).cache().batch(batch_size)
 
         test_clear = test_clear.map(
-            self.preprocess_image_test, num_parallel_calls=autotune).cache().shuffle(
-            buffer_size).batch(batch_size)
+            self.preprocess_image_test, num_parallel_calls=autotune).cache().batch(batch_size)
 
         test_fog = test_fog.map(
-            self.preprocess_image_test, num_parallel_calls=autotune).cache().shuffle(
-            buffer_size).batch(batch_size)
+            self.preprocess_image_test, num_parallel_calls=autotune).cache().batch(batch_size)
 
         sample_clear = sample_clear.map(
             self.preprocess_image_test, num_parallel_calls=autotune).cache().batch(sample_batch_size)
