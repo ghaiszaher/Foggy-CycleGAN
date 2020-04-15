@@ -122,13 +122,15 @@ class Trainer:
         :param generated_image:
         :return:
         """
-        rg = clear_image[:, :, :, 0] / clear_image[:, :, :, 1]
-        rg_hat = generated_image[:, :, :, 0] / generated_image[:, :, :, 1]
+        r = clear_image[:, :, :, 0]
+        g = clear_image[:, :, :, 1]
+        b = clear_image[:, :, :, 2]
+        r_hat = generated_image[:, :, :, 0]
+        g_hat = generated_image[:, :, :, 1]
+        b_hat = generated_image[:, :, :, 1]
 
-        gb = clear_image[:, :, :, 1] / clear_image[:, :, :, 2]
-        gb_hat = generated_image[:, :, :, 1] / generated_image[:, :, :, 2]
-        rg_loss = tf.reduce_mean(tf.abs(rg - rg_hat))
-        gb_loss = tf.reduce_mean(tf.abs(gb - gb_hat))
+        rg_loss = tf.reduce_mean(tf.abs(r * g_hat - g * r_hat))
+        gb_loss = tf.reduce_mean(tf.abs(g * b_hat - b * g_hat))
         loss = 0.5 * (rg_loss + gb_loss)
         return loss * self.LAMBDA * self.LAMBDA_MULTIPLIER
 
