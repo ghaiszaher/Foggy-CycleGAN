@@ -228,17 +228,14 @@ class Trainer:
                                                                                                      cycled_fog)
 
             # Total generator loss = adversarial loss + cycle loss
-            total_gen_clear2fog_loss = gen_clear2fog_loss + total_cycle_loss + \
-                                       self.identity_loss(real_fog, same_fog) + \
-                                       self.identity_loss(real_clear, fake_clear2clear) + \
-                                       self.identity_loss(white, fake_clear2white)
+            total_gen_clear2fog_loss = gen_clear2fog_loss + total_cycle_loss
             clear2fog_additional_losses = [self.identity_loss(real_fog, same_fog),
-                                     self.identity_loss(real_clear, fake_clear2clear),
-                                     self.identity_loss(white, fake_clear2white)]
+                                           self.identity_loss(real_clear, fake_clear2clear),
+                                           self.identity_loss(white, fake_clear2white)]
 
             if use_transmission_map_loss:
                 clear2fog_additional_losses.append(self.transmission_map_loss(real_clear, fake_fog,
-                                                                        clear_intensity))
+                                                                              clear_intensity))
                 total_gen_clear2fog_loss += self.transmission_map_loss(real_clear, fake_fog,
                                                                        clear_intensity)
             if use_whitening_loss:
