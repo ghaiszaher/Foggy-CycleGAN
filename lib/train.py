@@ -167,7 +167,8 @@ class Trainer:
             model.save_weights(path)
 
     @tf.function
-    def train_step(self, real_clear_batch, real_fog_batch, use_transmission_map_loss=True):
+    def train_step(self, real_clear_batch, real_fog_batch, use_transmission_map_loss=True, use_whitening_loss=True,
+                   use_rgb_ratio_loss=True):
         # def mean(arr):
         #     """
         #     Calculates the mean values of the values that are not None in the passed array
@@ -225,18 +226,18 @@ class Trainer:
                                                                                                      cycled_fog)
 
             # Total generator loss = adversarial loss + cycle loss
-            multiplier = 0.15 if use_transmission_map_loss else 0.2
             total_gen_clear2fog_loss = gen_clear2fog_loss + total_cycle_loss + \
-                                       multiplier * self.identity_loss(real_fog, same_fog) + \
-                                       multiplier * self.identity_loss(real_clear, fake_clear2clear) + \
-                                       multiplier * self.identity_loss(white, fake_clear2white) + \
-                                       multiplier * self.whitening_loss(real_clear, fake_fog) + \
-                                       multiplier * self.rgb_ratio_loss(real_clear, fake_fog)
-            # print(total_gen_clear2fog_loss)
+                                       self.identity_loss(real_fog, same_fog) + \
+                                       self.identity_loss(real_clear, fake_clear2clear) + \
+                                       self.identity_loss(white, fake_clear2white)
 
             if use_transmission_map_loss:
-                total_gen_clear2fog_loss += multiplier * self.transmission_map_loss(real_clear, fake_fog,
-                                                                                    clear_intensity)
+                total_gen_clear2fog_loss += self.transmission_map_loss(real_clear, fake_fog,
+                                                                       clear_intensity)
+            if use_whitening_loss:
+                total_gen_clear2fog_loss += self.whitening_loss(real_clear, fake_fog)
+            if use_rgb_ratio_loss:
+                total_gen_clear2fog_loss += self.rgb_ratio_loss(real_clear, fake_fog)
 
             total_gen_fog2clear_loss = gen_fog2clear_loss + \
                                        total_cycle_loss + \
@@ -351,7 +352,7 @@ class Trainer:
               clear_output_callback=None, use_tensorboard=False, sample_test=None, plot_sample_generator=False,
               plot_sample_gen_and_disc=False, save_sample_generator_output=True, save_sample_gen_and_disc_output=True,
               load_config_first=True, save_config_each_epoch=True, plot_only_one_sample_gen_and_disc=True,
-              use_transmission_map_loss=True):
+              use_transmission_map_loss=True, use_whitening_loss=True, use_rgb_ratio_loss=True):
         from lib.tools import print_with_timestamp
         import time
         import datetime
@@ -394,9 +395,12 @@ class Trainer:
             start = time.time()
             for image_clear, image_fog in dataset:
                 # Train Step
-                clear2fog_loss, fog2clear_loss, disc_clear_loss, disc_fog_loss = self.train_step(image_clear,
-                                                                                                 image_fog,
-                                                                                                 use_transmission_map_loss=use_transmission_map_loss)
+                clear2fog_loss, fog2clear_loss, disc_clear_loss, disc_fog_loss = \
+                    self.train_step(image_clear,
+                                    image_fog,
+                                    use_transmission_map_loss=use_transmission_map_loss,
+                                    use_whitening_loss=use_whitening_loss,
+                                    use_rgb_ratio_loss=use_rgb_ratio_loss)
                 # Update Epoch's losses
                 clear2fog_loss_total += clear2fog_loss
                 fog2clear_loss_total += fog2clear_loss
