@@ -127,8 +127,8 @@ class Trainer:
 
         gb = clear_image[:, :, :, 1] / clear_image[:, :, :, 2]
         gb_hat = generated_image[:, :, :, 1] / generated_image[:, :, :, 2]
-        rg_loss = tf.reduce_mean(rg - rg_hat)
-        gb_loss = tf.reduce_mean(gb - gb_hat)
+        rg_loss = tf.reduce_mean(tf.abs(rg - rg_hat))
+        gb_loss = tf.reduce_mean(tf.abs(gb - gb_hat))
         loss = 0.5 * (rg_loss + gb_loss)
         return loss * self.LAMBDA * self.LAMBDA_MULTIPLIER
 
