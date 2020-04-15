@@ -232,23 +232,23 @@ class Trainer:
                                        self.identity_loss(real_fog, same_fog) + \
                                        self.identity_loss(real_clear, fake_clear2clear) + \
                                        self.identity_loss(white, fake_clear2white)
-            gen_additional_losses = [self.identity_loss(real_fog, same_fog),
+            clear2fog_additional_losses = [self.identity_loss(real_fog, same_fog),
                                      self.identity_loss(real_clear, fake_clear2clear),
                                      self.identity_loss(white, fake_clear2white)]
 
             if use_transmission_map_loss:
-                gen_additional_losses.append(self.transmission_map_loss(real_clear, fake_fog,
+                clear2fog_additional_losses.append(self.transmission_map_loss(real_clear, fake_fog,
                                                                         clear_intensity))
                 total_gen_clear2fog_loss += self.transmission_map_loss(real_clear, fake_fog,
                                                                        clear_intensity)
             if use_whitening_loss:
-                gen_additional_losses.append(self.whitening_loss(real_clear, fake_fog))
+                clear2fog_additional_losses.append(self.whitening_loss(real_clear, fake_fog))
                 # total_gen_clear2fog_loss += self.whitening_loss(real_clear, fake_fog)
             if use_rgb_ratio_loss:
-                gen_additional_losses.append(self.rgb_ratio_loss(real_clear, fake_fog))
+                clear2fog_additional_losses.append(self.rgb_ratio_loss(real_clear, fake_fog))
                 # total_gen_clear2fog_loss += self.rgb_ratio_loss(real_clear, fake_fog)
-            r = 1.0 / len(gen_additional_losses)  # for loss normalization
-            for loss in gen_additional_losses:
+            r = 1.0 / len(clear2fog_additional_losses)  # for loss normalization
+            for loss in clear2fog_additional_losses:
                 total_gen_clear2fog_loss += r * loss
 
             total_gen_fog2clear_loss = gen_fog2clear_loss + \
