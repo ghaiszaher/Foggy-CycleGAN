@@ -7,8 +7,9 @@ from matplotlib import pyplot as plt
 class Trainer:
     def __init__(self, generator_clear2fog, generator_fog2clear,
                  discriminator_fog, discriminator_clear, LAMBDA=10,
-                 lr=2e-4, beta_1=0.5, normalized_input=True):
+                 lr=2e-4, beta_1=0.5, normalized_input=True, LAMBDA_MULTIPLIER=5):
         self.LAMBDA = LAMBDA
+        self.LAMBDA_MULTIPLIER = LAMBDA_MULTIPLIER
         self.generator_clear2fog = generator_clear2fog
         self.generator_fog2clear = generator_fog2clear
         self.discriminator_fog = discriminator_fog
@@ -92,7 +93,7 @@ class Trainer:
 
     def identity_loss(self, real_image, same_image):
         loss = tf.reduce_mean(tf.abs(real_image - same_image))
-        return self.LAMBDA * 0.5 * loss
+        return self.LAMBDA * loss
 
     def transmission_map_loss(self, clear_image, generated_image, intensity):
         if self.normalized_input:
@@ -104,6 +105,32 @@ class Trainer:
         expected_image = tf.convert_to_tensor(expected_image)
 
         return self.identity_loss(expected_image, generated_image)
+
+    def whitening_loss(self, clear_image, generated_image):
+        """
+        All (r,g,b) values got whitened -> each value is the same or increased
+        :param clear_image:
+        :param generated_image:
+        :return:
+        """
+        return tf.reduce_mean(tf.maximum(clear_image - generated_image, 0)) * self.LAMBDA * self.LAMBDA_MULTIPLIER
+
+    def rgb_ratio_loss(self, clear_image, generated_image):
+        """
+        (r,g,b) values should keep the same ratio in the generated image
+        :param clear_image:
+        :param generated_image:
+        :return:
+        """
+        rg = clear_image[:, :, :, 0] / clear_image[:, :, :, 1]
+        rg_hat = generated_image[:, :, :, 0] / generated_image[:, :, :, 1]
+
+        gb = clear_image[:, :, :, 1] / clear_image[:, :, :, 2]
+        gb_hat = generated_image[:, :, :, 1] / generated_image[:, :, :, 2]
+        rg_loss = tf.reduce_mean(rg - rg_hat)
+        gb_loss = tf.reduce_mean(gb - gb_hat)
+        loss = 0.5 * (rg_loss + gb_loss)
+        return loss * self.LAMBDA * self.LAMBDA_MULTIPLIER
 
     def get_models_and_paths(self):
         import os
@@ -141,6 +168,14 @@ class Trainer:
 
     @tf.function
     def train_step(self, real_clear_batch, real_fog_batch, use_transmission_map_loss=True):
+        # def mean(arr):
+        #     """
+        #     Calculates the mean values of the values that are not None in the passed array
+        #     :param arr: iterable
+        #     :return: number
+        #     """
+        #     return tf.reduce_mean([x for x in arr if x is not None])
+
         # persistent is set to True because the tape is used more than
         # once to calculate the gradients.
         with tf.GradientTape(persistent=True) as tape:
@@ -190,14 +225,18 @@ class Trainer:
                                                                                                      cycled_fog)
 
             # Total generator loss = adversarial loss + cycle loss
+            multiplier = 0.15 if use_transmission_map_loss else 0.2
             total_gen_clear2fog_loss = gen_clear2fog_loss + total_cycle_loss + \
-                                       self.identity_loss(real_fog, same_fog) + \
-                                       self.identity_loss(real_clear, fake_clear2clear) + \
-                                       self.identity_loss(white, fake_clear2white)  # + \
-            # self.transmission_map_loss(real_clear, fake_fog,
-            #                            clear_intensity)  # TODO: Check if performing well
+                                       multiplier * self.identity_loss(real_fog, same_fog) + \
+                                       multiplier * self.identity_loss(real_clear, fake_clear2clear) + \
+                                       multiplier * self.identity_loss(white, fake_clear2white) + \
+                                       multiplier * self.whitening_loss(real_clear, fake_fog) + \
+                                       multiplier * self.rgb_ratio_loss(real_clear, fake_fog)
+            # print(total_gen_clear2fog_loss)
+
             if use_transmission_map_loss:
-                total_gen_clear2fog_loss += self.transmission_map_loss(real_clear, fake_fog, clear_intensity)
+                total_gen_clear2fog_loss += multiplier * self.transmission_map_loss(real_clear, fake_fog,
+                                                                                    clear_intensity)
 
             total_gen_fog2clear_loss = gen_fog2clear_loss + \
                                        total_cycle_loss + \
