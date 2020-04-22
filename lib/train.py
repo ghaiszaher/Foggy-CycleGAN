@@ -188,6 +188,8 @@ class Trainer:
             else:
                 print("Not found: {}".format(path))
 
+        # TODO: Check exception:
+        # You called `set_weights(weights)` on optimizer Adam with a  weight list of length 25, but the optimizer was expecting 0 weights.
         if load_optimizers:
             optimizers, paths = self.get_optimizers_and_paths()
             for opt, path in zip(optimizers, paths):
