@@ -401,7 +401,7 @@ class Trainer:
               clear_output_callback=None, use_tensorboard=False, sample_test=None, plot_sample_generator=False,
               plot_sample_gen_and_disc=False, save_sample_generator_output=True, save_sample_gen_and_disc_output=True,
               load_config_first=True, save_config_each_epoch=True, plot_only_one_sample_gen_and_disc=True,
-              use_transmission_map_loss=True, use_whitening_loss=True, use_rgb_ratio_loss=True, save_optimizers=True):
+              use_transmission_map_loss=True, use_whitening_loss=True, use_rgb_ratio_loss=True, save_optimizers=False):
         from lib.tools import print_with_timestamp
         import time
         import datetime
