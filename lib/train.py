@@ -2,6 +2,7 @@ import tensorflow as tf
 from . import plot
 import os
 from matplotlib import pyplot as plt
+import pickle
 
 
 class Trainer:
@@ -150,7 +151,31 @@ class Trainer:
                  discriminator_fog_weights_path]
         return models, paths
 
-    def configure_checkpoint(self, weights_path):
+    def get_optimizers_and_paths(self):
+        discriminator_clear_optimizer_path = os.path.join(self.weights_path, 'discriminator_clear_optimizer.pkl')
+        discriminator_fog_optimizer_path = os.path.join(self.weights_path, 'discriminator_fog_optimizer.pkl')
+        generator_clear2fog_optimizer_path = os.path.join(self.weights_path, 'generator_clear2fog_optimizer.pkl')
+        generator_fog2clear_optimizer_path = os.path.join(self.weights_path, 'generator_fog2clear_optimizer.pkl')
+        optimizers = [self.discriminator_clear_optimizer,
+                      self.discriminator_fog_optimizer,
+                      self.generator_clear2fog_optimizer,
+                      self.generator_fog2clear_optimizer]
+        paths = [discriminator_clear_optimizer_path,
+                 discriminator_fog_optimizer_path,
+                 generator_clear2fog_optimizer_path,
+                 generator_fog2clear_optimizer_path]
+        return optimizers, paths
+
+    def save_optimizer_weights(self, opt, filename):
+        w = [x.numpy() for x in opt.weights]
+        with open(filename, 'wb') as f:
+            pickle.dump(w, f)
+
+    def load_optimizer_weights(self, opt, filename):
+        with open(filename, 'rb') as f:
+            opt.set_weights(pickle.load(f))
+
+    def configure_checkpoint(self, weights_path, load_optimizers=True):
         import os
         from . import tools
         self.weights_path = weights_path
@@ -163,10 +188,23 @@ class Trainer:
             else:
                 print("Not found: {}".format(path))
 
-    def save_weights(self):
+        if load_optimizers:
+            optimizers, paths = self.get_optimizers_and_paths()
+            for opt, path in zip(optimizers, paths):
+                if os.path.isfile(path):
+                    self.load_optimizer_weights(opt, path)
+                    print("Optimizer loaded: {}".format(path))
+                else:
+                    print("Not found: {}".format(path))
+
+    def save_weights(self, save_optimizers=True):
         models, paths = self.get_models_and_paths()
         for model, path in zip(models, paths):
             model.save_weights(path)
+        if save_optimizers:
+            optimizers, paths = self.get_optimizers_and_paths()
+            for opt, path in zip(optimizers, paths):
+                self.save_optimizer_weights(opt, path)
 
     @tf.function
     def train_step(self, real_clear_batch, real_fog_batch, use_transmission_map_loss=True, use_whitening_loss=True,
@@ -361,7 +399,7 @@ class Trainer:
               clear_output_callback=None, use_tensorboard=False, sample_test=None, plot_sample_generator=False,
               plot_sample_gen_and_disc=False, save_sample_generator_output=True, save_sample_gen_and_disc_output=True,
               load_config_first=True, save_config_each_epoch=True, plot_only_one_sample_gen_and_disc=True,
-              use_transmission_map_loss=True, use_whitening_loss=True, use_rgb_ratio_loss=True):
+              use_transmission_map_loss=True, use_whitening_loss=True, use_rgb_ratio_loss=True, save_optimizers=True):
         from lib.tools import print_with_timestamp
         import time
         import datetime
@@ -427,7 +465,7 @@ class Trainer:
             # Save weights
             if self.weights_path is not None and epoch_save_rate is not None and (
                     epoch + 1) % epoch_save_rate == 0:
-                self.save_weights()
+                self.save_weights(save_optimizers=save_optimizers)
                 print_with_timestamp('Saving checkpoint for epoch {} (total {}) at {}'.format(epoch + 1,
                                                                                               self.total_epochs + 1,
                                                                                               self.weights_path))
