@@ -105,7 +105,7 @@ class Trainer:
             expected_image.append(clear_image[i] * t[i] + (1 - t[i]))
         expected_image = tf.convert_to_tensor(expected_image)
 
-        return self.identity_loss(expected_image, generated_image)
+        return self.LAMBDA * tf.abs(tf.reduce_mean(expected_image) - tf.reduce_mean(generated_image))
 
     def whitening_loss(self, clear_image, generated_image):
         """
@@ -276,8 +276,8 @@ class Trainer:
             if use_transmission_map_loss:
                 clear2fog_additional_losses.append(self.transmission_map_loss(real_clear, fake_fog,
                                                                               clear_intensity))
-                total_gen_clear2fog_loss += self.transmission_map_loss(real_clear, fake_fog,
-                                                                       clear_intensity)
+                # total_gen_clear2fog_loss += self.transmission_map_loss(real_clear, fake_fog,
+                #                                                        clear_intensity)
             if use_whitening_loss:
                 clear2fog_additional_losses.append(self.whitening_loss(real_clear, fake_fog))
                 # total_gen_clear2fog_loss += self.whitening_loss(real_clear, fake_fog)
