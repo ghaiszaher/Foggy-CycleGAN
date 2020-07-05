@@ -1,5 +1,5 @@
 <p align="center">
- <img src="images/banner_cropped.png">
+ <img src="images/banner-cropped-rnd.png">
 </p>
 
 # Foggy-CycleGAN
