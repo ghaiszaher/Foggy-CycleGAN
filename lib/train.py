@@ -29,12 +29,6 @@ class Trainer:
         self.image_log_path = 'image_logs'
         self.config_path = 'trainer_config.json'
         self.tensorboard_current_logdir = None
-        # TODO: add save_config and load_config methods
-        # - config contains: all directories + total_epochs
-        # - instead of storing summary_writers as class variables, store tensorboard_current_logdir
-        # - in load_config, an option will be to load tensorboard_logdir or not
-        # - add class variable: config log
-        # - pass a parameter that allows to save config on each epoch end
 
     def save_config(self):
         import json
@@ -188,8 +182,6 @@ class Trainer:
             else:
                 print("Not found: {}".format(path))
 
-        # TODO: Check exception:
-        # You called `set_weights(weights)` on optimizer Adam with a  weight list of length 25, but the optimizer was expecting 0 weights.
         if load_optimizers:
             optimizers, paths = self.get_optimizers_and_paths()
             for opt, path in zip(optimizers, paths):

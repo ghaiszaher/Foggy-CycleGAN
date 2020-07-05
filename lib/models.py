@@ -102,7 +102,6 @@ class ModelsBuilder:
         intensity = tf.keras.layers.Reshape((self.image_height, self.image_height, 1))(intensity)
         return tf.keras.layers.Concatenate(axis=-1)([image_input, intensity])
 
-    # TODO: Check which is better, instancenorm or batchnorm
     def build_generator(self, use_transmission_map=False, use_gauss_filter=True, norm_type='instancenorm',
                         use_intensity=True, kernel_size=4,
                         use_resize_conv=False):
@@ -211,4 +210,3 @@ class ModelsBuilder:
         last = tf.keras.layers.Conv2D(1, kernel_size, strides=1,
                                       kernel_initializer=initializer)(zero_pad2)  # (bs, 30, 30, 1)
         return tf.keras.Model(inputs=inputs, outputs=last)
-        # TODO: should add activation to last layer?
