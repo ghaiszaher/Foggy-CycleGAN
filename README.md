@@ -4,7 +4,7 @@
  <img src="images/banner-cropped-rnd.png">
 </p>
 
-This project is a the implementation for my Computer Science MSc thesis in the University of Debrecen.
+This project is the implementation for my Computer Science MSc thesis in the University of Debrecen.
 
 Dissertation: 
 <a href="./dissertation/Simulating%20Weather%20Conditions%20on%20Digital%20Images%20-%20Final.pdf" target="_blank">[PDF] Simulating Weather Conditions on Digital Images</a> (Debrecen, 2020).
