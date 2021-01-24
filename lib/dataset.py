@@ -93,7 +93,7 @@ class DatasetInitializer:
         """
         if tf.equal(tf.size(image), 0):
             return image
-        target_ratio = tf.divide(target_width, target_height)
+        target_ratio = tf.cast(tf.divide(target_width, target_height), tf.float32)
         shape = tf.shape(image)
         original_height = tf.cast(shape[0], tf.int32)
         original_width = tf.cast(shape[1], tf.int32)
