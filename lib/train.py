@@ -30,6 +30,9 @@ class Trainer:
         self.config_path = 'trainer_config.json'
         self.tensorboard_current_logdir = None
 
+    def discriminator_fog_output(self, image, intensity, use_intensity_for_fog_discriminator, training=False):
+        return self.discriminator_fog((image, intensity), training=training) if use_intensity_for_fog_discriminator else self.discriminator_fog(image)
+
     def save_config(self):
         import json
         import os
@@ -201,7 +204,7 @@ class Trainer:
                 self.save_optimizer_weights(opt, path)
 
     @tf.function
-    def train_step(self, real_clear_batch, real_fog_batch, use_transmission_map_loss=True, use_whitening_loss=True,
+    def train_step(self, real_clear_batch, real_fog_batch, use_intensity_for_fog_discriminator=False, use_transmission_map_loss=True, use_whitening_loss=True,
                    use_rgb_ratio_loss=True):
         # def mean(arr):
         #     """
@@ -234,11 +237,11 @@ class Trainer:
             # Phase 3: Real images to Discriminators
             # discriminator_clear takes only an image
             disc_real_clear = self.discriminator_clear(real_clear, training=True)
-            disc_real_fog = self.discriminator_fog((real_fog, fog_intensity), training=True)
+            disc_real_fog = self.discriminator_fog_output(real_fog, fog_intensity, use_intensity_for_fog_discriminator, training=True)
 
             # Phase 4: Fake (Generated) images to Discriminators
             disc_fake_clear = self.discriminator_clear(fake_clear, training=True)
-            disc_fake_fog = self.discriminator_fog((fake_fog, clear_intensity), training=True)
+            disc_fake_fog = self.discriminator_fog_output(fake_fog, clear_intensity, use_intensity_for_fog_discriminator, training=True)
 
             # Phase 5: Clear2Clear
             # Pass a clear image for c2f generator with intensity = 0 and expect to have the same image
@@ -310,7 +313,7 @@ class Trainer:
 
     def epoch_callback(self, sample_test, plot_sample_generator, plot_sample_gen_and_disc,
                        save_sample_generator_output, save_sample_gen_and_disc_output,
-                       plot_only_one_sample_gen_and_disc):
+                       plot_only_one_sample_gen_and_disc, use_intensity_for_fog_discriminator):
         if sample_test is None:
             return
         if type(sample_test) is not list and type(sample_test) is not tuple:
@@ -329,9 +332,9 @@ class Trainer:
             prediction_clear2fog = self.generator_clear2fog((clear, clear_intensity))
             prediction_fog2clear = self.generator_fog2clear((fog, fog_intensity))
             discriminator_clear_output = self.discriminator_clear(clear)
-            discriminator_fog_output = self.discriminator_fog((fog, fog_intensity))
+            discriminator_fog_output = self.discriminator_fog_output(fog, fog_intensity, use_intensity_for_fog_discriminator)
             discriminator_fakeclear_output = self.discriminator_clear(prediction_fog2clear)
-            discriminator_fakefog_output = self.discriminator_fog((prediction_clear2fog, clear_intensity))
+            discriminator_fakefog_output = self.discriminator_fog_output(prediction_clear2fog, clear_intensity, use_intensity_for_fog_discriminator)
             plot.plot_generators_and_discriminators_predictions((clear, clear_intensity), prediction_clear2fog,
                                                                 (fog, fog_intensity),
                                                                 prediction_fog2clear,
@@ -347,9 +350,9 @@ class Trainer:
             prediction_clear2fog = self.generator_clear2fog((clear, clear_intensity))
             prediction_fog2clear = self.generator_fog2clear((fog, fog_intensity))
             discriminator_clear_output = self.discriminator_clear(clear)
-            discriminator_fog_output = self.discriminator_fog((fog, fog_intensity))
+            discriminator_fog_output = self.discriminator_fog_output(fog, fog_intensity, use_intensity_for_fog_discriminator)
             discriminator_fakeclear_output = self.discriminator_clear(prediction_fog2clear)
-            discriminator_fakefog_output = self.discriminator_fog((prediction_clear2fog, clear_intensity))
+            discriminator_fakefog_output = self.discriminator_fog_output(prediction_clear2fog, clear_intensity, use_intensity_for_fog_discriminator)
             if plot_sample_gen_and_disc or save_sample_gen_and_disc_output:
                 fig = plot.plot_generators_and_discriminators_predictions((clear, clear_intensity),
                                                                           prediction_clear2fog,
@@ -393,7 +396,8 @@ class Trainer:
               clear_output_callback=None, use_tensorboard=False, sample_test=None, plot_sample_generator=False,
               plot_sample_gen_and_disc=False, save_sample_generator_output=True, save_sample_gen_and_disc_output=True,
               load_config_first=True, save_config_each_epoch=True, plot_only_one_sample_gen_and_disc=True,
-              use_transmission_map_loss=True, use_whitening_loss=True, use_rgb_ratio_loss=True, save_optimizers=False):
+              use_transmission_map_loss=True, use_whitening_loss=True, use_rgb_ratio_loss=True, save_optimizers=False,
+              use_intensity_for_fog_discriminator=False):
         from lib.tools import print_with_timestamp
         import time
         import datetime
@@ -429,7 +433,7 @@ class Trainer:
             clear2fog_loss_total = fog2clear_loss_total = disc_clear_loss_total = disc_fog_loss_total = 0
             self.epoch_callback(sample_test, plot_sample_generator, plot_sample_gen_and_disc,
                                 save_sample_generator_output, save_sample_gen_and_disc_output,
-                                plot_only_one_sample_gen_and_disc)
+                                plot_only_one_sample_gen_and_disc, use_intensity_for_fog_discriminator)
 
             dataset = tf.data.Dataset.zip((train_clear, train_fog))
             n = 0
@@ -441,7 +445,8 @@ class Trainer:
                                     image_fog,
                                     use_transmission_map_loss=use_transmission_map_loss,
                                     use_whitening_loss=use_whitening_loss,
-                                    use_rgb_ratio_loss=use_rgb_ratio_loss)
+                                    use_rgb_ratio_loss=use_rgb_ratio_loss,
+                                    use_intensity_for_fog_discriminator=use_intensity_for_fog_discriminator)
                 # Update Epoch's losses
                 clear2fog_loss_total += clear2fog_loss
                 fog2clear_loss_total += fog2clear_loss

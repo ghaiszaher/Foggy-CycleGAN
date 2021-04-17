@@ -62,18 +62,22 @@ def plot_generators_predictions_v2(test_input_clear, prediction_clear2fog, test_
     return fig
 
 
-def plot_discriminators_predictions(discriminator_clear, sample_clear, discriminator_fog, sample_fog, close_fig=False):
+def plot_discriminators_predictions(discriminator_clear, sample_clear, discriminator_fog, sample_fog,
+                                    use_intensity_for_fog_discriminator=False, close_fig=False):
     import matplotlib.pyplot as plt
 
     fig = plt.figure(figsize=(8, 8))
 
+    sample_fog_input = sample_fog if use_intensity_for_fog_discriminator else sample_fog[0]
+    sample_clear_input = sample_clear[0]
+
     plt.subplot(1, 2, 1)
     plt.title('Is real clear?')
-    plt.imshow(discriminator_clear(sample_clear)[0, ..., -1], cmap='RdBu_r')
+    plt.imshow(discriminator_clear(sample_clear_input)[0, ..., -1], cmap='RdBu_r')
 
     plt.subplot(1, 2, 2)
     plt.title('Is real fog?')
-    plt.imshow(discriminator_fog(sample_fog)[0, ..., -1], cmap='RdBu_r')
+    plt.imshow(discriminator_fog(sample_fog_input)[0, ..., -1], cmap='RdBu_r')
 
     if close_fig:
         plt.close(fig)
