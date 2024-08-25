@@ -134,10 +134,10 @@ class Trainer:
 
     def get_models_and_paths(self):
         import os
-        generator_clear2fog_weights_path = os.path.join(self.weights_path, 'generator_clear2fog.h5')
-        generator_fog2clear_weights_path = os.path.join(self.weights_path, 'generator_fog2clear.h5')
-        discriminator_clear_weights_path = os.path.join(self.weights_path, 'discriminator_clear.h5')
-        discriminator_fog_weights_path = os.path.join(self.weights_path, 'discriminator_fog.h5')
+        generator_clear2fog_weights_path = os.path.join(self.weights_path, 'generator_clear2fog.weights.h5')
+        generator_fog2clear_weights_path = os.path.join(self.weights_path, 'generator_fog2clear.weights.h5')
+        discriminator_clear_weights_path = os.path.join(self.weights_path, 'discriminator_clear.weights.h5')
+        discriminator_fog_weights_path = os.path.join(self.weights_path, 'discriminator_fog.weights.h5')
         models = [self.generator_clear2fog,
                   self.generator_fog2clear,
                   self.discriminator_clear,
