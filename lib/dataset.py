@@ -181,7 +181,7 @@ class DatasetInitializer:
             if images_df is None:
                 images_df = df
             else:
-                images_df = images_df.append(df)
+                images_df = pd.concat([images_df, df], ignore_index=True)
 
         if images_df is None:
             raise Exception("No images found!")
