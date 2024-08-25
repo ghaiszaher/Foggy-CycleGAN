@@ -5,6 +5,7 @@ description = "Fog Simulation using Generative Adversarial Networks (GAN). This 
 authors = ["Ghais Zaher <ghaiszaher@gmail.com>"]
 license = "GPL-3.0-only"
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.12"
