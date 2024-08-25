@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "foggy-cyclegan"
+version = "0.1.0"
+description = "Fog Simulation using Generative Adversarial Networks (GAN). This code is the implementation of the master thesis Simulating Weather Conditions on Digital Images. It uses a modified CycleGAN model to synthesize fog on clear images."
+authors = ["Ghais Zaher <ghaiszaher@gmail.com>"]
+license = "GPL-3.0-only"
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.10"
+tensorflow = "^2.17.0"
+tensorflow-datasets = "^4.9.6"
+matplotlib = "^3.9.2"
+jupyter = "^1.0.0"
+numpy = "^1.20.0"
+pydot = "^3.0.1"
+graphviz = "^0.20.3"
+ipython = "^8.26.0"
+pandas = "^2.2.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
