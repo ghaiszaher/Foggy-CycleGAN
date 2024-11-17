@@ -52,27 +52,25 @@ A Jupyter Notebook file <a href="https://github.com/ghaiszaher/Foggy-CycleGAN/bl
 </div>
 
 ## Pre-trained Models
-As previous pre-trained models are no longer compatible with newer Keras/Tensorflow versions, I have retrained the model and made it available for
-download.
+As previous pre-trained models are no longer compatible with newer Keras/Tensorflow versions, I have retrained the model and made the new weights available to download.
 
 Each of the following models was trained in Google Colab using the same dataset, the parameters for building the models and number of trained epochs are a bit different:
 <div align="center">
 
-| Model                | Trained Epochs | Config                                                                                                                             |
-|----------------------|----------------|------------------------------------------------------------------------------------------------------------------------------------|
-| 2024-11-17-rev1-0000 | 100            | `use_transmission_map=False`<br>`use_gauss_filter=False`<br>`use_resize_conv=False`<br>`use_intensity_for_fog_discriminator=False` |
-| 2024-11-17-rev2-1100 | ⏳              | `use_transmission_map=True`<br>`use_gauss_filter=True`<br>`use_resize_conv=False`<br>`use_intensity_for_fog_discriminator=False`   |
-| 2024-11-17-rev3-1000 | ⏳              | `use_transmission_map=True`<br>`use_gauss_filter=False`<br>`use_resize_conv=False`<br>`use_intensity_for_fog_discriminator=False`  |
-| 2024-11-17-rev4-1101 | ⏳              | `use_transmission_map=True`<br>`use_gauss_filter=True`<br>`use_resize_conv=False`<br>`use_intensity_for_fog_discriminator=True`    |
-| 2024-11-17-rev5-1110 | ⏳              | `use_transmission_map=True`<br>`use_gauss_filter=True`<br>`use_resize_conv=True`<br>`use_intensity_for_fog_discriminator=False`    |
-| 2024-11-17-rev6-1101 | ⏳              | `use_transmission_map=True`<br>`use_gauss_filter=True`<br>`use_resize_conv=False`<br>`use_intensity_for_fog_discriminator=True`    |
+| Model                                                                                                    | Trained Epochs | Config                                                                              |
+|----------------------------------------------------------------------------------------------------------|----------------|-------------------------------------------------------------------------------------|
+| [2020-06 (legacy)](https://drive.google.com/drive/folders/1QKsiaGkMFvtGcp072IG57MfY1o_D-L3k?usp=sharing) | ~200           | `use_transmission_map=False`<br>`use_gauss_filter=False`<br>`use_resize_conv=False` |
+| 2024-11-17-rev1-000                                                                                      | 178            | `use_transmission_map=False`<br>`use_gauss_filter=False`<br>`use_resize_conv=False` |
+| 2024-11-17-rev2-110                                                                                      | ⏳              | `use_transmission_map=True`<br>`use_gauss_filter=True`<br>`use_resize_conv=False`   |
+| 2024-11-17-rev3-111                                                                                      | ⏳              | `use_transmission_map=True`<br>`use_gauss_filter=True`<br>`use_resize_conv=True`    |
+
 </div>
 
 ### Results
 The results of the new models are similar to the previous ones, here are some samples:
 
-| Clear                                                   | 2024-11-17-rev1-0000                                        | 2024-11-17-rev2-0101                                        | 2024-11-17-rev3-0100                                        | 2024-11-17-rev4-1000                                        | 2024-11-17-rev5-0010                                        |
-|---------------------------------------------------------|-------------------------------------------------------------|-------------------------------------------------------------|-------------------------------------------------------------|-------------------------------------------------------------|-------------------------------------------------------------|
-| <img src="images/results/2024-11-17/clear/sample1.jpg"> | <img src="images/results/2024-11-17/rev1-0000/sample1.gif"> | <img src="images/results/2024-11-17/rev2-0101/sample1.gif"> | <img src="images/results/2024-11-17/rev3-0100/sample1.gif"> | <img src="images/results/2024-11-17/rev4-1000/sample1.gif"> | <img src="images/results/2024-11-17/rev5-0010/sample1.gif"> |
-| <img src="images/results/2024-11-17/clear/sample2.jpg"> | <img src="images/results/2024-11-17/rev1-0000/sample2.gif"> | <img src="images/results/2024-11-17/rev2-0101/sample2.gif"> | <img src="images/results/2024-11-17/rev3-0100/sample2.gif"> | <img src="images/results/2024-11-17/rev4-1000/sample2.gif"> | <img src="images/results/2024-11-17/rev5-0010/sample2.gif"> |
-| <img src="images/results/2024-11-17/clear/sample3.jpg"> | <img src="images/results/2024-11-17/rev1-0000/sample3.gif"> | <img src="images/results/2024-11-17/rev2-0101/sample3.gif"> | <img src="images/results/2024-11-17/rev3-0100/sample3.gif"> | <img src="images/results/2024-11-17/rev4-1000/sample3.gif"> | <img src="images/results/2024-11-17/rev5-0010/sample3.gif"> |
+| Clear                                                   | 2024-11-17-rev1-000                                        | 2024-11-17-rev2-110                                        | 2024-11-17-rev3-111                                        |
+|---------------------------------------------------------|------------------------------------------------------------|------------------------------------------------------------|------------------------------------------------------------|
+| <img src="images/results/2024-11-17/clear/sample1.jpg"> | <img src="images/results/2024-11-17/rev1-000/sample1.gif"> | <img src="images/results/2024-11-17/rev2-110/sample1.gif"> | <img src="images/results/2024-11-17/rev3-111/sample1.gif"> |
+| <img src="images/results/2024-11-17/clear/sample2.jpg"> | <img src="images/results/2024-11-17/rev1-000/sample2.gif"> | <img src="images/results/2024-11-17/rev2-110/sample2.gif"> | <img src="images/results/2024-11-17/rev3-111/sample2.gif"> |
+| <img src="images/results/2024-11-17/clear/sample3.jpg"> | <img src="images/results/2024-11-17/rev1-000/sample3.gif"> | <img src="images/results/2024-11-17/rev2-110/sample3.gif"> | <img src="images/results/2024-11-17/rev3-111/sample3.gif"> |
