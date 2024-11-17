@@ -68,9 +68,12 @@ Each of the following models was trained in Google Colab using the same dataset,
 
 ### Results
 The results of the new models are similar to the previous ones, here are some samples:
+<div align="center">
 
 | Clear                                                   | 2024-11-17-rev1-000                                        | 2024-11-17-rev2-110                                        | 2024-11-17-rev3-111                                        |
 |---------------------------------------------------------|------------------------------------------------------------|------------------------------------------------------------|------------------------------------------------------------|
 | <img src="images/results/2024-11-17/clear/sample1.jpg"> | <img src="images/results/2024-11-17/rev1-000/sample1.gif"> | <img src="images/results/2024-11-17/rev2-110/sample1.gif"> | <img src="images/results/2024-11-17/rev3-111/sample1.gif"> |
 | <img src="images/results/2024-11-17/clear/sample2.jpg"> | <img src="images/results/2024-11-17/rev1-000/sample2.gif"> | <img src="images/results/2024-11-17/rev2-110/sample2.gif"> | <img src="images/results/2024-11-17/rev3-111/sample2.gif"> |
 | <img src="images/results/2024-11-17/clear/sample3.jpg"> | <img src="images/results/2024-11-17/rev1-000/sample3.gif"> | <img src="images/results/2024-11-17/rev2-110/sample3.gif"> | <img src="images/results/2024-11-17/rev3-111/sample3.gif"> |
+
+</div>
