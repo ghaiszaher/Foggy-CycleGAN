@@ -41,7 +41,7 @@ A Jupyter Notebook file <a href="https://github.com/ghaiszaher/Foggy-CycleGAN/bl
  <img src="images/results/2020-06/result-sample-0.2.jpg">
 </p>
 
-<p style="text-align: center;">
+<p align="center">
  <img src="images/results/2020-06/result-sample-0.3.jpg">
 </p>
 
