@@ -59,14 +59,13 @@ download.
 
 Each of the following models was trained in Google Colab for 100 epochs using the same dataset, the parameters for building the models are a bit different:
 
-| Model                | Trained Epochs | `use_transmission_map` | `use_gauss_filter` | `use_resize_conv` | `use_intensity_for_fog_discriminator` |
-|----------------------|----------------|------------------------|--------------------|-------------------|---------------------------------------|
-| 2024-11-17-rev1-0000 | 100            |                        |                    |                   |                                       |
-| 2024-11-17-rev2-0101 | ⏳              |                        | ✅                  |                   | ✅                                     |
-| 2024-11-17-rev3-0100 | ⏳              |                        | ✅                  |                   |                                       |
-| 2024-11-17-rev4-1000 | ⏳              | ✅                      |                    |                   |                                       |
-| 2024-11-17-rev5-0010 | ⏳              |                        |                    | ✅                 |                                       |
-
+| Model                | Trained Epochs | Config                                                                                                                             |
+|----------------------|----------------|------------------------------------------------------------------------------------------------------------------------------------|
+| 2024-11-17-rev1-0000 | 100            | `use_transmission_map=False`<br>`use_gauss_filter=False`<br>`use_resize_conv=False`<br>`use_intensity_for_fog_discriminator=False` |
+| 2024-11-17-rev2-0101 | ⏳              | `use_transmission_map=False`<br>`use_gauss_filter=True`<br>`use_resize_conv=False`<br>`use_intensity_for_fog_discriminator=True`   |
+| 2024-11-17-rev3-0100 | ⏳              | `use_transmission_map=False`<br>`use_gauss_filter=True`<br>`use_resize_conv=False`<br>`use_intensity_for_fog_discriminator=False`  |
+| 2024-11-17-rev4-1000 | ⏳              | `use_transmission_map=True`<br>`use_gauss_filter=False`<br>`use_resize_conv=False`<br>`use_intensity_for_fog_discriminator=False`  |
+| 2024-11-17-rev5-0010 | ⏳              | `use_transmission_map=False`<br>`use_gauss_filter=False`<br>`use_resize_conv=True`<br>`use_intensity_for_fog_discriminator=False`  |
 
 
 ### Results
