@@ -57,12 +57,13 @@ As previous pre-trained models are no longer compatible with newer Keras/Tensorf
 Each of the following models was trained in Google Colab using the same dataset, the parameters for building the models and number of trained epochs are a bit different:
 <div align="center">
 
-| Model                                                                                                    | Trained Epochs | Config                                                                              |
-|----------------------------------------------------------------------------------------------------------|----------------|-------------------------------------------------------------------------------------|
-| [2020-06 (legacy)](https://drive.google.com/drive/folders/1QKsiaGkMFvtGcp072IG57MfY1o_D-L3k?usp=sharing) | 292            | `use_transmission_map=False`<br>`use_gauss_filter=False`<br>`use_resize_conv=False` |
-| 2024-11-17-rev1-000                                                                                      | 522            | `use_transmission_map=False`<br>`use_gauss_filter=False`<br>`use_resize_conv=False` |
-| 2024-11-17-rev2-110                                                                                      | 54             | `use_transmission_map=True`<br>`use_gauss_filter=True`<br>`use_resize_conv=False`   |
-| 2024-11-17-rev3-111                                                                                      | ⏳              | `use_transmission_map=True`<br>`use_gauss_filter=True`<br>`use_resize_conv=True`    |
+| Model                                                                                                       | Trained Epochs | Config                                                                              |
+|-------------------------------------------------------------------------------------------------------------|----------------|-------------------------------------------------------------------------------------|
+| [2020-06 (legacy)](https://drive.google.com/drive/folders/1QKsiaGkMFvtGcp072IG57MfY1o_D-L3k?usp=sharing)    | 145            | `use_transmission_map=False`<br>`use_gauss_filter=False`<br>`use_resize_conv=False` |
+| [2024-11-17-rev1-000](https://drive.google.com/drive/folders/1--W53NNrVxS5pvrf8jDKCRmg4h4vD5lx?usp=sharing) | 522            | `use_transmission_map=False`<br>`use_gauss_filter=False`<br>`use_resize_conv=False` |
+| [2024-11-17-rev2-110](https://drive.google.com/drive/folders/1rQ7jmsv63uv6v45IVZmZ8w9CVktqJAfn?usp=sharing) | 100            | `use_transmission_map=True`<br>`use_gauss_filter=True`<br>`use_resize_conv=False`   |
+| [2024-11-17-rev3-111](https://drive.google.com/drive/folders/1-0-z7KTMXTrwwUdeJtkUOBCWkwD6behO?usp=sharing) | 103            | `use_transmission_map=True`<br>`use_gauss_filter=True`<br>`use_resize_conv=True`    |
+| [2024-11-17-rev4-001](https://drive.google.com/drive/folders/1hDxJtU0agbnPO2XrrPo26RQJKOePa6WX?usp=sharing) | 39             | `use_transmission_map=False`<br>`use_gauss_filter=False`<br>`use_resize_conv=True`  |
 
 </div>
 
@@ -70,10 +71,12 @@ Each of the following models was trained in Google Colab using the same dataset,
 The results of the new models are similar to the previous ones, here are some samples:
 <div align="center">
 
-| Clear                                                   | 2024-11-17-rev1-000                                        | 2024-11-17-rev2-110                                        | 2024-11-17-rev3-111                                        |
-|---------------------------------------------------------|------------------------------------------------------------|------------------------------------------------------------|------------------------------------------------------------|
-| <img src="images/results/2024-11-17/clear/sample1.jpg"> | <img src="images/results/2024-11-17/rev1-000/sample1.gif"> | <img src="images/results/2024-11-17/rev2-110/sample1.gif"> | <img src="images/results/2024-11-17/rev3-111/sample1.gif"> |
-| <img src="images/results/2024-11-17/clear/sample2.jpg"> | <img src="images/results/2024-11-17/rev1-000/sample2.gif"> | <img src="images/results/2024-11-17/rev2-110/sample2.gif"> | <img src="images/results/2024-11-17/rev3-111/sample2.gif"> |
-| <img src="images/results/2024-11-17/clear/sample3.jpg"> | <img src="images/results/2024-11-17/rev1-000/sample3.gif"> | <img src="images/results/2024-11-17/rev2-110/sample3.gif"> | <img src="images/results/2024-11-17/rev3-111/sample3.gif"> |
+| Clear                                                   | 2024-11-17-rev1-000                                        | 2024-11-17-rev2-110                                        | 2024-11-17-rev3-111                                        | 2024-11-17-rev4-001                                        |
+|---------------------------------------------------------|------------------------------------------------------------|------------------------------------------------------------|------------------------------------------------------------|------------------------------------------------------------|
+| <img src="images/results/2024-11-17/clear/sample1.jpg"> | <img src="images/results/2024-11-17/rev1-000/sample1.gif"> | <img src="images/results/2024-11-17/rev2-110/sample1.gif"> | <img src="images/results/2024-11-17/rev3-111/sample1.gif"> | <img src="images/results/2024-11-17/rev4-001/sample1.gif"> |
+| <img src="images/results/2024-11-17/clear/sample2.jpg"> | <img src="images/results/2024-11-17/rev1-000/sample2.gif"> | <img src="images/results/2024-11-17/rev2-110/sample2.gif"> | <img src="images/results/2024-11-17/rev3-111/sample2.gif"> | <img src="images/results/2024-11-17/rev4-001/sample2.gif"> |
+| <img src="images/results/2024-11-17/clear/sample3.jpg"> | <img src="images/results/2024-11-17/rev1-000/sample3.gif"> | <img src="images/results/2024-11-17/rev2-110/sample3.gif"> | <img src="images/results/2024-11-17/rev3-111/sample3.gif"> | <img src="images/results/2024-11-17/rev4-001/sample3.gif"> |
+| <img src="images/results/2024-11-17/clear/sample4.jpg"> | <img src="images/results/2024-11-17/rev1-000/sample4.gif"> | <img src="images/results/2024-11-17/rev2-110/sample4.gif"> | <img src="images/results/2024-11-17/rev3-111/sample4.gif"> | <img src="images/results/2024-11-17/rev4-001/sample4.gif"> |
+| <img src="images/results/2024-11-17/clear/sample5.jpg"> | <img src="images/results/2024-11-17/rev1-000/sample5.gif"> | <img src="images/results/2024-11-17/rev2-110/sample5.gif"> | <img src="images/results/2024-11-17/rev3-111/sample5.gif"> | <img src="images/results/2024-11-17/rev4-001/sample5.gif"> |
 
 </div>
