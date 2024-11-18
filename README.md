@@ -60,8 +60,8 @@ Each of the following models was trained in Google Colab using the same dataset,
 | Model                                                                                                    | Trained Epochs | Config                                                                              |
 |----------------------------------------------------------------------------------------------------------|----------------|-------------------------------------------------------------------------------------|
 | [2020-06 (legacy)](https://drive.google.com/drive/folders/1QKsiaGkMFvtGcp072IG57MfY1o_D-L3k?usp=sharing) | 292            | `use_transmission_map=False`<br>`use_gauss_filter=False`<br>`use_resize_conv=False` |
-| 2024-11-17-rev1-000                                                                                      | 178            | `use_transmission_map=False`<br>`use_gauss_filter=False`<br>`use_resize_conv=False` |
-| 2024-11-17-rev2-110                                                                                      | ⏳              | `use_transmission_map=True`<br>`use_gauss_filter=True`<br>`use_resize_conv=False`   |
+| 2024-11-17-rev1-000                                                                                      | 522            | `use_transmission_map=False`<br>`use_gauss_filter=False`<br>`use_resize_conv=False` |
+| 2024-11-17-rev2-110                                                                                      | 54             | `use_transmission_map=True`<br>`use_gauss_filter=True`<br>`use_resize_conv=False`   |
 | 2024-11-17-rev3-111                                                                                      | ⏳              | `use_transmission_map=True`<br>`use_gauss_filter=True`<br>`use_resize_conv=True`    |
 
 </div>
