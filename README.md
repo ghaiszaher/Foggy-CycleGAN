@@ -19,6 +19,7 @@ Dissertation:
 - [Results (2020)](#results-2020)
 - [Pre-trained Models](#pre-trained-models)
 - [Results (2024)](#results-2024)
+- [2024-11-17-rev1-000 Test Notebook](#2024-11-17-rev1-000-test-notebook-a-hrefhttpscolabresearchgooglecomgithubghaiszaherfoggy-cycleganblobmaster2024-11-17-rev1-000-testipynb-target_blankimg-srchttpscolabresearchgooglecomassetscolab-badgesvg-altopen-in-colaba)
 
 ## Description
 **Foggy-CycleGAN** is a
@@ -169,5 +170,5 @@ The results of the new models are similar to the previous ones, here are some sa
 </table>
 </div>
 
-### 2024-11-17-rev1-000 Test Notebook <a href="https://colab.research.google.com/github/ghaiszaher/Foggy-CycleGAN/blob/master/2024-11-17-rev1-000-test.ipynb" target="_blank"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+## 2024-11-17-rev1-000 Test Notebook <a href="https://colab.research.google.com/github/ghaiszaher/Foggy-CycleGAN/blob/master/2024-11-17-rev1-000-test.ipynb" target="_blank"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 A Jupyter Notebook file <a href="./2024-11-17-rev1-000-test.ipynb" target="_blank">2024-11-17-rev1-000-test.ipynb</a> is available in the repository to test the 2024-11-17-rev1-000 model.
