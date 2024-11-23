@@ -16,8 +16,9 @@ Dissertation:
 - [Description](#description)
 - [Code](#code)
 - [Notebook](#notebook)
-- [Results](#results)
+- [Results (2020)](#results-2020)
 - [Pre-trained Models](#pre-trained-models)
+- [Results (2024)](#results-2024)
 
 ## Description
 **Foggy-CycleGAN** is a
@@ -29,8 +30,7 @@ The full source code is available under GPL-3.0 License in my Github repository 
 ## Notebook <a href="https://colab.research.google.com/github/ghaiszaher/Foggy-CycleGAN/blob/master/Foggy_CycleGAN.ipynb" target="_blank"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 A Jupyter Notebook file <a href="https://github.com/ghaiszaher/Foggy-CycleGAN/blob/master/Foggy_CycleGAN.ipynb" target="_blank">Foggy_CycleGAN.ipynb</a> is available in the repository.
 
-## Results
-(as of June 2020)
+## Results (2020)
 <p align="center">
  <img src="images/results/2020-06/result-animated-01.gif">
 </p>
@@ -52,12 +52,12 @@ A Jupyter Notebook file <a href="https://github.com/ghaiszaher/Foggy-CycleGAN/bl
 </div>
 
 ## Pre-trained Models
-As previous pre-trained models are no longer compatible with newer Keras/Tensorflow versions, I have retrained the model and made the new weights available to download.
+As legacy pre-trained models are no longer compatible with newer Keras/Tensorflow versions, I have retrained the model and made the new weights available to download.
 
 Each of the following models was trained in Google Colab using the same dataset, the parameters for building the models and number of trained epochs are a bit different:
 <div align="center">
 
-<table>
+<table align="center">
   <thead>
     <tr>
       <th>Model</th>
@@ -115,11 +115,11 @@ Each of the following models was trained in Google Colab using the same dataset,
 </table>
 </div>
 
-### Results
+## Results (2024)
 The results of the new models are similar to the previous ones, here are some samples:
 <div align="center">
 
-<table>
+<table align="center">
   <thead>
     <tr>
       <th>Clear</th>
