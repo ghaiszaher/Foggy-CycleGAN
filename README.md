@@ -23,7 +23,7 @@ Dissertation:
 
 ## Description
 **Foggy-CycleGAN** is a
-<a href="https://junyanz.github.io/CycleGAN/" target="_blank">CycleGAN</a> model trained to synthesize fog on clear images. More details in the dissertation above.
+A Jupyter Notebook file <a href="https://github.com/ghaiszaher/Foggy-CycleGAN/blob/master/Foggy_CycleGAN.ipynb" target="_blank">Foggy_CycleGAN.ipynb</a> is available in the repository.
 
 ## Code
 The full source code is available under GPL-3.0 License in my Github repository <a href="https://github.com/ghaiszaher/Foggy-CycleGAN" target="_blank">ghaiszaher/Foggy-CycleGAN</a>
@@ -171,4 +171,4 @@ The results of the new models are similar to the previous ones, here are some sa
 </div>
 
 ## 2024-11-17-rev1-000 Test Notebook <a href="https://colab.research.google.com/github/ghaiszaher/Foggy-CycleGAN/blob/master/2024-11-17-rev1-000-test.ipynb" target="_blank"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
-A Jupyter Notebook file <a href="./2024-11-17-rev1-000-test.ipynb" target="_blank">2024-11-17-rev1-000-test.ipynb</a> is available in the repository to test the 2024-11-17-rev1-000 model.
+A Jupyter Notebook file <a href="https://github.com/ghaiszaher/Foggy-CycleGAN/blob/master/2024-11-17-rev1-000-test.ipynb" target="_blank">2024-11-17-rev1-000-test.ipynb</a> is available in the repository to test the 2024-11-17-rev1-000 model.
