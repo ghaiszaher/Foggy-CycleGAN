@@ -9,5 +9,6 @@ image_logs/
 trainer_config.json
 dataset/
 intensity/
+custom-images/
 
 !.idea/dictionaries/

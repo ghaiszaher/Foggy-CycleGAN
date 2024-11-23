@@ -156,17 +156,17 @@ def plot_clear2fog_intensity(model_clear2fog, image_clear, intensity=0.5,
     fig = plt.figure(figsize=(12, 6))
 
     display_list = [image_clear, prediction_clear2fog[0]]
+    if normalized_input:
+        display_list = [item * 0.5 + 0.5 for item in display_list]
     title = ['Clear', 'To Fog {:0.2}'.format(original_intensity)]
 
     for i in range(2):
         plt.subplot(1, 2, i + 1)
         plt.title(title[i])
         to_display = display_list[i]
-        if normalized_input:
-            to_display = to_display * 0.5 + 0.5
         plt.imshow(to_display)
         plt.axis('off')
 
     if close_fig:
         plt.close(fig)
-    return fig, prediction_clear2fog[0]
+    return fig, display_list[1]
