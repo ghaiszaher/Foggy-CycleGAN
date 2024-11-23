@@ -169,4 +169,4 @@ def plot_clear2fog_intensity(model_clear2fog, image_clear, intensity=0.5,
 
     if close_fig:
         plt.close(fig)
-    return fig
+    return fig, prediction_clear2fog[0]
