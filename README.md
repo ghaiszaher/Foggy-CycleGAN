@@ -19,7 +19,7 @@ Dissertation:
 - [Results (2020)](#results-2020)
 - [Pre-trained Models](#pre-trained-models)
 - [Results (2024)](#results-2024)
-- [2024-11-17-rev1-000 Test Notebook](#2024-11-17-rev1-000-test-notebook-a-hrefhttpscolabresearchgooglecomgithubghaiszaherfoggy-cycleganblobmaster2024-11-17-rev1-000-testipynb-target_blankimg-srchttpscolabresearchgooglecomassetscolab-badgesvg-altopen-in-colaba)
+- [2024-11-17-rev1-000 Test Notebook](#2024-11-17-rev1-000-test-notebook-)
 
 ## Description
 **Foggy-CycleGAN** is a
