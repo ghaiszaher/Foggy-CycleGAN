@@ -18,6 +18,7 @@ pydot = "^3.0.1"
 graphviz = "^0.20.3"
 ipython = "^8.26.0"
 pandas = "^2.2.2"
+gdown = "^5.2.0"
 
 
 [build-system]
